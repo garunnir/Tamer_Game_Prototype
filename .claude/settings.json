@@ -1,12 +1,12 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "Stop": [
       {
-        "matcher": "Bash|Write|Edit",
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "cat CLAUDE.md 2>/dev/null || true"
+            "command": "echo \"\\a\" && echo \"[$(date '+%H:%M:%S')] Claude Code task completed.\""
           }
         ]
       }

@@ -40,6 +40,13 @@
 - Prefer Update loop over coroutines (performance)
 - Use object pooling aggressively (monsters, effects, projectiles)
 
+## Naming Conventions
+- Classes: `PascalCase` (e.g. `FlockManager`)
+- Private fields: `_camelCase` (e.g. `_moveSpeed`) — applies to ALL private fields including SerializeField
+- Public properties: `PascalCase` (e.g. `MoveSpeed`)
+- Constants: `PascalCase` (e.g. `MaxHealth`, `SeparationRadius`)
+- Methods: `PascalCase` (e.g. `CalculateSeparation()`)
+
 ## Folder Structure
 ```
 Assets/

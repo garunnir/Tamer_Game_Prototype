@@ -97,11 +97,11 @@ public class ObjectPool<T> where T : MonoBehaviour
 
 ```csharp
 // Use layers + Physics.IgnoreLayerCollision to reduce collision checks
-// Use OverlapCircleNonAlloc instead of OverlapCircle (no allocation)
-private Collider2D[] _results = new Collider2D[10]; // reuse buffer
+// Use OverlapSphereNonAlloc instead of OverlapSphere (no allocation)
+private Collider[] _results = new Collider[10]; // reuse buffer
 
 void DetectEnemies() {
-    int count = Physics2D.OverlapCircleNonAlloc(transform.position, 5f, _results, enemyLayer);
+    int count = Physics.OverlapSphereNonAlloc(transform.position, 5f, _results, enemyLayer);
     for (int i = 0; i < count; i++) {
         // process _results[i]
     }

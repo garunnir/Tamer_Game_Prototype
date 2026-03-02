@@ -33,13 +33,17 @@ This skill provides best practices for writing clean, performant Unity C# script
 Assets/
 ├── Scripts/
 │   ├── Player/
-│   ├── Enemies/
-│   ├── UI/
-│   ├── Managers/
-│   └── ScriptableObjects/
+│   ├── Flock/          # Flocking system (FlockManager, FlockUnit, FormationHelper)
+│   ├── Monster/        # MonsterBase + 3 normal + 2 boss monsters
+│   ├── Combat/         # CombatSystem, HitEffect
+│   ├── Taming/         # TamingSystem
+│   ├── Map/            # FogOfWar, MinimapController
+│   ├── UI/             # Bestiary, HUD
+│   └── Data/           # ScriptableObject data assets
 ├── Prefabs/
+├── ScriptableObjects/
 ├── Scenes/
-└── Art/
+└── Resources/
 ```
 
 ## Naming Conventions
