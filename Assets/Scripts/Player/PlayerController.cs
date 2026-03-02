@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace WildTamer
 {
@@ -16,6 +17,9 @@ namespace WildTamer
         [Header("References")]
         [SerializeField] private Transform _cameraTransform;
 
+        [Header("Input")]
+        [SerializeField] private InputActionReference _moveAction;
+
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
         private Rigidbody _rigidbody;
@@ -31,6 +35,18 @@ namespace WildTamer
 
             if (_cameraTransform == null)
                 Debug.LogWarning("[PlayerController] Camera Transform is not assigned.");
+        }
+
+        private void OnEnable()
+        {
+            if (_moveAction != null)
+                _moveAction.action.Enable();
+        }
+
+        private void OnDisable()
+        {
+            if (_moveAction != null)
+                _moveAction.action.Disable();
         }
 
         private void Update()
@@ -51,8 +67,15 @@ namespace WildTamer
 
         private void ComputeMoveDirection()
         {
-            float horizontal = Input.GetAxisRaw("Horizontal");
-            float vertical = Input.GetAxisRaw("Vertical");
+            if (_moveAction == null)
+            {
+                _moveDirection = Vector3.zero;
+                return;
+            }
+
+            Vector2 input = _moveAction.action.ReadValue<Vector2>();
+            float horizontal = input.x;
+            float vertical = input.y;
 
             Vector3 cameraForward = Vector3.ProjectOnPlane(_cameraTransform.forward, Vector3.up).normalized;
             Vector3 cameraRight = Vector3.ProjectOnPlane(_cameraTransform.right, Vector3.up).normalized;
