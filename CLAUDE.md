@@ -129,17 +129,45 @@ Assets/
 ## Memory (Claude Code updates this directly)
 
 ### Last Session
-- (Claude Code records after each session)
+- Code review + bug fixes for QuarterViewCamera and FlockUnit (2026-03-02)
 
 ### Completed Work Summary
-- (Add one-line summary per completed task)
+- QuarterViewCamera.cs: fixed quarter-view follow camera with smooth lerp and CameraShake() hook
+- PlayerController.cs: Rigidbody-based WASD movement with camera-relative direction and Animator Speed hook
+- FlockUnit.cs: Transform-based unit with separation/alignment/cohesion/target-seek; VelocityDirection property for alignment reads
+- FlockManager.cs: singleton; drives neighbor detection via sqrMagnitude loop; dispatches UpdateUnit(); AddUnit()/RemoveUnit() public API; delegates formation offset to FormationHelper
+- FormationHelper.cs: pure offset calculator; Recalculate(count) rebuilds Vector3[] offsets; GetOffset(index) safe-returns zero if out of range
 
 ### Implementation Decisions
-- (Why things were implemented a certain way)
-- Example: "FlockUnit uses no Rigidbody — direct Transform manipulation performs better with many units"
+- `_basePosition` field tracks unshaken camera position so Lerp never reads a shake-displaced value — prevents cumulative drift
+- CameraShake uses Update-loop timer with linear magnitude decay (ratio = timer/duration); no coroutine per CLAUDE.md rules
+- Camera rotation set once in Start() — it's fixed, no per-frame cost
+- LateUpdate used (not Update) so camera moves after player Transform is updated
+- CameraShake accumulates via Mathf.Max (magnitude + timer) — consecutive hits don't reset shake to zero
+- Shake offset uses transform.right + transform.up (camera-local) not world XY — correct for 60° pitch camera
+- QuarterViewCamera._basePosition initialized to transform.position before null check — safe if player assigned late
+- PlayerController uses Rigidbody.linearVelocity (Unity 6 API); preserves Y for gravity
+- FreezeRotation constraint set in Awake so physics can't tip capsule; script controls rotation via RotateTowards
+- Animator.StringToHash("Speed") cached as static readonly field — no per-frame string allocation
+- FlockManager uses single shared _nearbyBuffer (cleared per unit) — zero per-frame heap allocation
+- _sqrDetectionRadius cached in Awake to skip sqrt in hot detection loop
+- FlockUnit.VelocityDirection retains last valid direction when speed drops to zero — prevents zero-vector LookRotation crash
+- FlockUnit._maxSpeed = 7f (> PlayerController._moveSpeed 5f) so units can catch up during sprint
+- FlockUnit.CalculateTargetSeek uses distance-proportional strength (Clamp(dist/_maxSpeed, 0, 1.5)) — rubber-band: gentle near slot, strong when far
+- FlockManager._initialUnits: inspector list of scene instances; arranged into circle by InitializeFormation() at Start
+- AddUnit() captures newIndex before list.Add(), calls Recalculate after — array size always matches index
+- FormationHelper.Recalculate() must be called whenever flock size changes (FlockManager does this automatically)
+- FlockManager removed _formationSpawnRadius and private GetFormationPosition() — all offset math now in FormationHelper
+- Reason for FlockManager refactor: centralise formation math in FormationHelper per architecture, avoid duplication
 
 ### Known Issues / Incomplete
-- (Bugs, temporary workarounds, things to fix later)
+- QuarterViewCamera._player must be assigned manually in Inspector
+- PlayerController._cameraTransform must be assigned manually in Inspector
+- FlockManager._playerTransform must be assigned manually in Inspector
 
 ### Next Session Notes
-- (What Claude Code needs to know immediately at the start of a new session)
+- Next step: Auto-combat system (CombatSystem.cs — Assets/Scripts/Combat/)
+- TamingSystem calls FlockManager.Instance.AddUnit(unit) — singleton is ready
+- Flock system (FlockUnit + FlockManager + FormationHelper) is complete and tested
+- Inspector setup: FlockManager needs _playerTransform + _formationHelper (component on same GameObject) + _initialUnits list
+- All 4 test items passed after fixes: camera follow ✅, formation ✅, no overlap ✅, fast catch-up ✅
