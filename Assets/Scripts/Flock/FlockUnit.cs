@@ -9,7 +9,7 @@ namespace WildTamer
     /// FlockManager is responsible for neighbor detection and calls UpdateUnit()
     /// each frame with the pre-filtered nearby list.
     /// </summary>
-    public class FlockUnit : MonoBehaviour
+    public class FlockUnit : MonoBehaviour, IHitReactive
     {
         [Header("Flocking Weights")]
         [SerializeField] private float _separationWeight = 1.5f;
@@ -29,6 +29,16 @@ namespace WildTamer
         public Vector3 VelocityDirection { get; private set; }
 
         private Vector3 _currentVelocity;
+        private float   _suspendTimer;
+
+        // ── IHitReactive Implementation ──────────────────────────────────────
+
+        public void SuspendMotion(float duration)
+        {
+            _suspendTimer = Mathf.Max(_suspendTimer, duration);
+        }
+
+        // ── Flock Update ─────────────────────────────────────────────────────
 
         /// <summary>
         /// Called every frame by FlockManager.
@@ -36,6 +46,12 @@ namespace WildTamer
         /// </summary>
         public void UpdateUnit(List<FlockUnit> nearbyUnits, Vector3 targetPosition)
         {
+            if (_suspendTimer > 0f)
+            {
+                _suspendTimer -= Time.deltaTime;
+                return;
+            }
+
             Vector3 separation = CalculateSeparation(nearbyUnits);
             Vector3 alignment  = CalculateAlignment(nearbyUnits);
             Vector3 cohesion   = CalculateCohesion(nearbyUnits);

@@ -1,0 +1,24 @@
+# Implementation Checklist
+
+- [x] Project setup / quarter-view camera
+- [x] Player movement
+- [x] FlockUnit.cs
+- [x] FlockManager.cs
+- [x] FormationHelper.cs
+- [x] MonsterData.cs + assets
+- [x] ICombatant.cs
+- [x] CombatSystem.cs
+- [x] Projectile.cs + ProjectilePool.cs
+- [x] FlockUnitCombat.cs
+- [x] MonsterBase.cs
+- [x] MonsterA.cs (melee)
+- [x] MonsterB.cs (ranged + zigzag + retreat)
+- [x] MonsterC.cs (AoE artillery + enrage)
+- [x] BossA.cs (AoE slam)
+- [x] BossB.cs (charge)
+- [ ] TamingSystem.cs
+- [x] HitEffect (hitstop, hitlag, camera shake, hit flash, spark pool) — EffectManager.cs
+- [ ] FogOfWar.cs
+- [ ] MinimapController.cs
+- [ ] Bestiary UI (bonus)
+- [ ] Data persistence save/load (bonus)

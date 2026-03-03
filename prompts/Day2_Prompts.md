@@ -24,7 +24,7 @@ Fields:
 - Attack range
 - Detection range
 - Taming chance (0~1)
-- Monster type Enum (Normal_A, Normal_B, Normal_C, Boss_A, Boss_B)
+- No type Enum — MonsterData asset itself is the type identifier, use asset name as ID
 
 Also create 5 MonsterData asset files, one per type.
 Before starting, write a checklist of all files and methods you will create.

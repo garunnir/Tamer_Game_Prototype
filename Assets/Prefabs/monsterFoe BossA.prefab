@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &2655092506691823685
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2310278062637113591, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_Name
+      value: monsterFoe BossA
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5620180005639978564}
+  m_SourcePrefab: {fileID: 100100000, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+--- !u!1 &7534357362536060424 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+  m_PrefabInstance: {fileID: 2655092506691823685}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-5620180005639978564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7534357362536060424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 450c9bf10d4cea74eb9e75969031d10b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.BossA
+  _data: {fileID: 11400000, guid: 48c62c239816ab4408f09c406dece0b9, type: 2}
+  _patrolRadius: 5
+  _idleDuration: 2
+  _slamInterval: 8
+  _slamZoneCount: 3
+  _slamDamage: 25
+  _slamRadius: 3
+  _zoneSpawnInterval: 0.5
+  _warningDuration: 1.5
