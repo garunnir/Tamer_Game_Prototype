@@ -16,9 +16,6 @@
 - _sparkPrefab is optional — leave null for procedural default spark
 
 ## Not Yet Implemented
-- MonsterC — implemented; MonsterC.asset values (moveSpeed=2, attackRange=8, attackCooldown=3) must be set manually in Inspector
-- MonsterA — implemented; MonsterA.asset values (moveSpeed=4, attackRange=1.5) must be set manually in Inspector
-- BossB — implemented; BossB.asset values (attackCooldown=2, attackRange=2, moveSpeed=3, maxHP=350, detectionRange=15) must be set in Inspector
 - TamingSystem
 - FogOfWar
 - MinimapController
