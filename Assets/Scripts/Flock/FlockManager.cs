@@ -5,9 +5,9 @@ namespace WildTamer
 {
     /// <summary>
     /// Singleton manager for the flock system.
-    /// Holds the live unit list, drives neighbor detection each frame via direct
-    /// distance comparison (no Physics.OverlapSphere), and dispatches UpdateUnit()
-    /// to each FlockUnit. Exposes AddUnit() / RemoveUnit() for TamingSystem.
+    /// Holds the live ally unit list, drives neighbor detection each frame via direct
+    /// distance comparison (no Physics.OverlapSphere), and calls TickWithNeighbors()
+    /// on each unit's FlockMoveLogic. Exposes AddUnit() / RemoveUnit() for taming.
     /// </summary>
     public class FlockManager : MonoBehaviour
     {
@@ -28,14 +28,13 @@ namespace WildTamer
         [SerializeField] private FormationHelper _formationHelper;
 
         [Header("Initial Units")]
-        [SerializeField] private List<FlockUnit> _initialUnits = new List<FlockUnit>();
+        [SerializeField] private List<MonsterUnit> _initialUnits = new List<MonsterUnit>();
 
         // ── Runtime state ────────────────────────────────────────────────────
 
-        private readonly List<FlockUnit> _units       = new List<FlockUnit>();
-        private readonly List<FlockUnit> _nearbyBuffer = new List<FlockUnit>();
+        private readonly List<MonsterUnit> _units        = new List<MonsterUnit>();
+        private readonly List<MonsterUnit> _nearbyBuffer = new List<MonsterUnit>();
 
-        /// Cached to avoid per-frame multiplication inside the detection loop.
         private float _sqrDetectionRadius;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
@@ -79,17 +78,18 @@ namespace WildTamer
                     ? playerPosition + _formationHelper.GetOffset(i)
                     : playerPosition;
 
-                _units[i].UpdateUnit(_nearbyBuffer, target);
+                FlockMoveLogic flockLogic = _units[i].ActiveMovementLogic as FlockMoveLogic;
+                flockLogic?.TickWithNeighbors(_units[i], _nearbyBuffer, target);
             }
         }
 
         // ── Public API ───────────────────────────────────────────────────────
 
         /// <summary>
-        /// Adds a unit to the flock at the next circular formation slot near the player.
-        /// Called by TamingSystem after a successful taming event.
+        /// Adds a tamed unit to the flock at the next formation slot near the player.
+        /// Called by MonsterUnit.BecomeFlockUnit() on taming.
         /// </summary>
-        public void AddUnit(FlockUnit unit)
+        public void AddUnit(MonsterUnit unit)
         {
             if (unit == null)
             {
@@ -117,24 +117,19 @@ namespace WildTamer
         }
 
         /// <summary>
-        /// Removes a unit from the flock. The caller is responsible for
-        /// destroying or deactivating the GameObject.
+        /// Removes a unit from the flock.
+        /// Called automatically by MonsterUnit.EnterDead().
         /// </summary>
-        public void RemoveUnit(FlockUnit unit)
+        public void RemoveUnit(MonsterUnit unit)
         {
             if (unit == null) return;
 
             _units.Remove(unit);
-
             _formationHelper?.Recalculate(_units.Count);
         }
 
         // ── Internal helpers ─────────────────────────────────────────────────
 
-        /// <summary>
-        /// Adds all inspector-assigned initial units to the live list and
-        /// arranges them in an evenly-spaced circle around the player.
-        /// </summary>
         private void InitializeFormation()
         {
             for (int i = 0; i < _initialUnits.Count; i++)
@@ -158,10 +153,6 @@ namespace WildTamer
             }
         }
 
-        /// <summary>
-        /// Clears and refills the shared neighbor buffer for unit at index <paramref name="unitIndex"/>.
-        /// Uses sqrMagnitude to avoid sqrt in the hot path.
-        /// </summary>
         private void BuildNearbyBuffer(int unitIndex)
         {
             _nearbyBuffer.Clear();
@@ -178,6 +169,5 @@ namespace WildTamer
                     _nearbyBuffer.Add(_units[j]);
             }
         }
-
     }
 }

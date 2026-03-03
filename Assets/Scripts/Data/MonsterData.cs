@@ -21,13 +21,22 @@ namespace WildTamer
 
         [SerializeField] private float _attackCooldown = 1.5f;
 
-        public string MonsterName    => _monsterName;
-        public int    MaxHP          => _maxHP;
-        public float  AttackDamage   => _attackDamage;
-        public float  MoveSpeed      => _moveSpeed;
-        public float  AttackRange    => _attackRange;
-        public float  DetectionRange => _detectionRange;
-        public float  TamingChance   => _tamingChance;
-        public float  AttackCooldown => _attackCooldown;
+        [Header("Default Strategies")]
+        [Tooltip("Movement logic used unless overridden on the MonsterUnit prefab.")]
+        [SerializeField] private MovementLogic _defaultMovementLogic;
+
+        [Tooltip("Attack logic used unless overridden on the MonsterUnit prefab.")]
+        [SerializeField] private AttackLogic _defaultAttackLogic;
+
+        public string        MonsterName          => _monsterName;
+        public int           MaxHP                => _maxHP;
+        public float         AttackDamage         => _attackDamage;
+        public float         MoveSpeed            => _moveSpeed;
+        public float         AttackRange          => _attackRange;
+        public float         DetectionRange       => _detectionRange;
+        public float         TamingChance         => _tamingChance;
+        public float         AttackCooldown       => _attackCooldown;
+        public MovementLogic DefaultMovementLogic => _defaultMovementLogic;
+        public AttackLogic   DefaultAttackLogic   => _defaultAttackLogic;
     }
 }

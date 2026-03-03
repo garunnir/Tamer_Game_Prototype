@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43e4a28df3b0a7649bb6063ae3cd4251, type: 3}
+  m_Name: FlockMove
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.FlockMoveLogic
+  _separationWeight: 1.5
+  _alignmentWeight: 1
+  _cohesionWeight: 1
+  _targetWeight: 2
+  _separationRadius: 1.5
+  _maxSpeed: 7
+  _rotationSpeed: 360
+  _acceleration: 8

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f58cdb60e6d7c76479d34a835fce9359, type: 3}
+  m_Name: MonsterData_BossB
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterData
+  _monsterName: Boss B
+  _maxHP: 400
+  _attackDamage: 35
+  _moveSpeed: 4
+  _attackRange: 2.5
+  _detectionRange: 12
+  _tamingChance: 0.05
+  _attackCooldown: 1.5
+  _defaultMovementLogic: {fileID: 11400000, guid: a1746df60e4ab7843a07483f2d435b92, type: 2}
+  _defaultAttackLogic: {fileID: 11400000, guid: 6d562508216f62f44968e02543851e5a, type: 2}

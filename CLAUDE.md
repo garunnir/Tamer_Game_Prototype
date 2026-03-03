@@ -6,36 +6,45 @@
 1. Read this entire file before doing anything.
 2. Do NOT write code immediately — **plan first**.
    - Output the plan and wait for approval before proceeding.
-   - Specifically, plan how to migrate `FlockUnit` and `MonsterA, B, C` into the new `MonsterUnit` system.
 3. Write code.
 4. **Self-verify** — No compile errors, no logical bugs, no violations of these rules.
-5. After completion, update .claude/memory/ files.
+5. After completion, update `.claude/memory/` files.
 
 ---
 
-## Architecture (Unified & Strategy-Driven)
-- **Single Unit Principle:** Individual scripts (`MonsterA, B, C`) and `FlockUnit` are **DEPRECATED**.
-- **MonsterUnit:** All monsters must use the unified `MonsterUnit.cs` class.
-- **Passive Agent:** `MonsterUnit` is a passive executor. It must **NOT** contain internal decision-making logic or `if/switch` for behavior states.
-- **Strategy Pattern:** All behaviors (Movement, Attack) must be injected via ScriptableObject-based `MovementLogic` and `AttackLogic`.
-- **Faction & Alliance:** Use `FactionSystem` (or integrated `FlockManager`) to determine hostile relationships. 
-- **Relationship Rule:** **Never** use simple `teamID` comparison; always use `FactionSystem.AreHostile(teamA, teamB)` to account for alliances.
-- **Taming Flow:** When a unit's team changes to Player, the system must immediately swap its `MovementLogic` to the `FlockMovement` asset.
+## Architecture
+
+- **MonsterUnit** is the only monster class. No subclasses. (`Scripts/Monster/MonsterUnit.cs`)
+- **Passive Executor:** `MonsterUnit` owns the state machine skeleton and helper methods only. No hardcoded behavior logic inside it.
+- **Strategy Pattern:** All behavior is injected via `MovementLogic` and `AttackLogic` ScriptableObjects. Always clone SOs in `Awake()` — `Instantiate(source)` — so each unit has independent runtime state.
+- **FactionSystem** is a `static` utility class (no scene object). Use `FactionSystem.AreHostile(a, b)` — never compare `teamID` directly.
+- **Taming:** Call `MonsterUnit.SetFaction(FactionId.Player)`. Details → `.claude/memory/decisions/strategy-pattern.md`
 
 ## Folder Structure
-Assets/
-├── Scripts/
-│   ├── Player/
-│   ├── Monster/      <-- Unified MonsterUnit & Entities
-│   ├── Combat/       <-- AttackLogic SOs & CombatSystem
-│   ├── Data/         <-- MonsterData & MovementLogic SOs
-│   ├── Flock/        <-- Integrated with FactionSystem
-│   └── ...
-
-*Note: Moving files between Flock/ and Monster/ is permitted to achieve unit unification.*
+```
+Assets/Scripts/
+├── Player/
+├── Monster/       ← MonsterUnit.cs only
+├── Combat/        ← CombatSystem, FactionSystem, ICombatant, AoeSlamZone, Projectile(Pool)
+├── Data/
+│   ├── MovementLogic.cs, AttackLogic.cs  (abstract SO bases)
+│   ├── MonsterData.cs
+│   ├── Movement/  ← MovementLogic implementations
+│   └── Attack/    ← AttackLogic implementations
+├── Flock/         ← FlockManager, FormationHelper
+└── Effects/
+```
 
 ## Coding Conventions
-- Namespace: WildTamer
-- Private fields: _camelCase (applies to ALL private fields including SerializeField)
-- Public properties/methods: PascalCase
-- NO public fields, NO NavMesh.
+- Namespace: `WildTamer`
+- Single Responsibility — one MonoBehaviour, one role
+- `[SerializeField]` only — NO public fields, NO NavMesh
+- Private fields: `_camelCase` | Public properties/methods: `PascalCase` | Constants: `PascalCase`
+- Prefer Update loop over coroutines (performance)
+- Object pooling for monsters, effects, projectiles
+
+## Key Warnings
+- Never `OverlapSphere` / `Raycast` every frame — throttle with `InvokeRepeating`
+- `CombatSystem` + `ProjectilePool` must each be on a scene GameObject
+- Combatants register in `Start()`, not `Awake()` — `CombatSystem` singleton must exist first
+- `AttackLogic.OnEnterAttackState()` must reset any sequence state (charge phase, slam flag)
