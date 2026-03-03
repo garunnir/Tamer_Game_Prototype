@@ -9,6 +9,7 @@ namespace WildTamer
     /// distance comparison (no Physics.OverlapSphere), and calls TickWithNeighbors()
     /// on each unit's FlockMoveLogic. Exposes AddUnit() / RemoveUnit() for taming.
     /// </summary>
+    [DefaultExecutionOrder(1)]
     public class FlockManager : MonoBehaviour
     {
         // ── Singleton ────────────────────────────────────────────────────────
@@ -24,6 +25,9 @@ namespace WildTamer
         [SerializeField] private int   _maxUnits        = 20;
         [SerializeField] private float _detectionRadius = 5f;
 
+        [Header("Flock Logic")]
+        [SerializeField] private FlockMoveLogic _flockMoveTemplate;
+
         [Header("Formation")]
         [SerializeField] private FormationHelper _formationHelper;
 
@@ -32,8 +36,9 @@ namespace WildTamer
 
         // ── Runtime state ────────────────────────────────────────────────────
 
-        private readonly List<MonsterUnit> _units        = new List<MonsterUnit>();
-        private readonly List<MonsterUnit> _nearbyBuffer = new List<MonsterUnit>();
+        private readonly List<MonsterUnit>   _units        = new List<MonsterUnit>();
+        private readonly List<FlockMoveLogic> _flockLogics  = new List<FlockMoveLogic>();
+        private readonly List<MonsterUnit>   _nearbyBuffer = new List<MonsterUnit>();
 
         private float _sqrDetectionRadius;
 
@@ -72,14 +77,15 @@ namespace WildTamer
 
             for (int i = 0; i < _units.Count; i++)
             {
+                if (!_units[i].IsFollowing) continue;
+
                 BuildNearbyBuffer(i);
 
                 Vector3 target = _formationHelper != null
                     ? playerPosition + _formationHelper.GetOffset(i)
                     : playerPosition;
 
-                FlockMoveLogic flockLogic = _units[i].ActiveMovementLogic as FlockMoveLogic;
-                flockLogic?.TickWithNeighbors(_units[i], _nearbyBuffer, target);
+                _flockLogics[i]?.TickWithNeighbors(_units[i], _nearbyBuffer, target);
             }
         }
 
@@ -105,6 +111,7 @@ namespace WildTamer
 
             int newIndex = _units.Count;
             _units.Add(unit);
+            _flockLogics.Add(CreateFlockLogic(unit));
 
             if (_formationHelper != null)
             {
@@ -124,33 +131,54 @@ namespace WildTamer
         {
             if (unit == null) return;
 
-            _units.Remove(unit);
+            int index = _units.IndexOf(unit);
+            if (index < 0) return;
+
+            _units.RemoveAt(index);
+            _flockLogics.RemoveAt(index);
             _formationHelper?.Recalculate(_units.Count);
         }
 
         // ── Internal helpers ─────────────────────────────────────────────────
 
+        /// <summary>
+        /// Routes each _initialUnit through the canonical taming flow
+        /// (SetFaction → BecomeFlockUnit → AddUnit + EnterFollow), then
+        /// recalculates the formation and positions all units around the player.
+        /// Must run in Start() so all MonsterUnit.Start() calls (order 0) have
+        /// already registered with CombatSystem before we mutate their faction.
+        /// </summary>
         private void InitializeFormation()
         {
-            for (int i = 0; i < _initialUnits.Count; i++)
+            foreach (MonsterUnit unit in _initialUnits)
             {
-                if (_initialUnits[i] != null)
-                    _units.Add(_initialUnits[i]);
+                if (unit != null)
+                    unit.SetFaction(FactionId.Player);
             }
 
-            if (_units.Count == 0) return;
+            if (_units.Count == 0 || _formationHelper == null) return;
 
-            if (_formationHelper != null)
+            _formationHelper.Recalculate(_units.Count);
+
+            Vector3 center = _playerTransform != null
+                ? _playerTransform.position
+                : transform.position;
+
+            for (int i = 0; i < _units.Count; i++)
+                _units[i].transform.position = center + _formationHelper.GetOffset(i);
+        }
+
+        private FlockMoveLogic CreateFlockLogic(MonsterUnit unit)
+        {
+            if (_flockMoveTemplate == null)
             {
-                _formationHelper.Recalculate(_units.Count);
-
-                Vector3 center = _playerTransform != null
-                    ? _playerTransform.position
-                    : transform.position;
-
-                for (int i = 0; i < _units.Count; i++)
-                    _units[i].transform.position = center + _formationHelper.GetOffset(i);
+                Debug.LogWarning("[FlockManager] FlockMoveTemplate is not assigned.");
+                return null;
             }
+
+            FlockMoveLogic logic = Instantiate(_flockMoveTemplate);
+            logic.Initialize(unit);
+            return logic;
         }
 
         private void BuildNearbyBuffer(int unitIndex)

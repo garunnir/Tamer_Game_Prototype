@@ -13,7 +13,11 @@
 
 ## Follow State (MonsterState.Follow)
 - 6th state for tamed units. FlockManager drives movement via FlockMoveLogic.TickWithNeighbors().
-- MonsterUnit.UpdateFollow() only ticks AttackLogic; return values are ignored (unit never leaves Follow via attack result).
+- FlockManager owns FlockMoveLogic instances (template SO on FlockManager, Instantiate per AddUnit).
+- MonsterUnit has NO knowledge of FlockMoveLogic. IsFollowing property exposes state for FlockManager.
+- FlockManager.Update() skips units where !IsFollowing (Chase/Attack units not driven by flock).
+- OnTargetAssigned(): Follow → Chase when target assigned. Chase/Attack → Follow (EnterIdleOrFollow) when target lost.
+- UpdateFollow() still ticks AttackLogic as safety net but rarely runs with a live target.
 
 ## AttackLogic.Tick(owner, target, inAttackRange)
 - MonsterUnit.UpdateAttack() precomputes inRange and passes it in — avoids redundant distance checks.
@@ -46,12 +50,11 @@
 1. CombatSystem.UnregisterCombatant(this)
 2. _factionId = FactionId.Player
 3. CombatSystem.RegisterCombatant(this)  ← now registers as Ally
-4. _movementLogic = Instantiate(_flockMovementLogic)
-5. FlockManager.AddUnit(this)
-6. EnterFollow()
+4. FlockManager.AddUnit(this)  ← FlockManager creates FlockMoveLogic instance internally
+5. EnterFollow()
 
-## Inspector Setup Required (Post-Refactoring)
+## Inspector Setup Required
 - Create SO assets under ScriptableObjects/Movement/ and ScriptableObjects/Attack/
 - Assign DefaultMovementLogic + DefaultAttackLogic in each MonsterData asset
-- Assign _flockMovementLogic (FlockMove.asset) on each MonsterUnit prefab
+- Assign FlockMoveTemplate (FlockMove.asset) on FlockManager — NOT on MonsterUnit prefabs
 - Update FlockManager._initialUnits list (type changed from FlockUnit to MonsterUnit)

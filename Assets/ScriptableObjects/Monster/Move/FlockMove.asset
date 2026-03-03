@@ -16,7 +16,7 @@ MonoBehaviour:
   _alignmentWeight: 1
   _cohesionWeight: 1
   _targetWeight: 2
-  _separationRadius: 1.5
+  _separationRadius: 3
   _maxSpeed: 7
   _rotationSpeed: 360
   _acceleration: 8

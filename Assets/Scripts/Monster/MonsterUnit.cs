@@ -39,10 +39,6 @@ namespace WildTamer
         [SerializeField] private MovementLogic _movementLogicOverride;
         [SerializeField] private AttackLogic   _attackLogicOverride;
 
-        [Header("Taming")]
-        [Tooltip("Flock movement logic injected when this unit is tamed.")]
-        [SerializeField] private MovementLogic _flockMovementLogic;
-
         [Header("Patrol")]
         [SerializeField] private float _patrolRadius = 5f;
         [SerializeField] private float _idleDuration = 2f;
@@ -60,6 +56,7 @@ namespace WildTamer
         public float         CurrentHP           => _currentHP;
         public MovementLogic ActiveMovementLogic => _movementLogic;
         public bool          IsMotionSuspended   => _suspendTimer > 0f;
+        public bool          IsFollowing         => _state == MonsterState.Follow;
 
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
@@ -168,7 +165,7 @@ namespace WildTamer
         {
             if (_currentTarget == null || !_currentTarget.IsAlive)
             {
-                EnterIdle();
+                EnterIdleOrFollow();
                 return;
             }
 
@@ -184,7 +181,7 @@ namespace WildTamer
         {
             if (_currentTarget == null || !_currentTarget.IsAlive)
             {
-                EnterIdle();
+                EnterIdleOrFollow();
                 return;
             }
 
@@ -196,8 +193,8 @@ namespace WildTamer
             AttackTickResult result = _attackLogic.Tick(this, _currentTarget, inRange);
             switch (result)
             {
-                case AttackTickResult.EnterChase: EnterChase(); break;
-                case AttackTickResult.EnterIdle:  EnterIdle();  break;
+                case AttackTickResult.EnterChase: EnterChase();       break;
+                case AttackTickResult.EnterIdle:  EnterIdleOrFollow(); break;
             }
         }
 
@@ -227,12 +224,20 @@ namespace WildTamer
             _idleTimer = _idleDuration;
         }
 
+        private void EnterIdleOrFollow()
+        {
+            if (_factionId == FactionId.Player) EnterFollow();
+            else EnterIdle();
+        }
+
         private void EnterPatrol()
         {
             _state = MonsterState.Patrol;
             Vector2 circle = Random.insideUnitCircle * _patrolRadius;
             _patrolTarget  = _spawnPoint + new Vector3(circle.x, 0f, circle.y);
         }
+
+        
 
         private void EnterChase()
         {
@@ -277,17 +282,14 @@ namespace WildTamer
         {
             _currentTarget = target;
 
-            // Follow state handles targeting independently; never interrupt it.
-            if (_state == MonsterState.Follow) return;
-
             if (target != null && target.IsAlive)
             {
-                if (_state == MonsterState.Idle || _state == MonsterState.Patrol)
+                if (_state == MonsterState.Idle || _state == MonsterState.Patrol || _state == MonsterState.Follow)
                     EnterChase();
             }
             else if (_state == MonsterState.Chase || _state == MonsterState.Attack)
             {
-                EnterIdle();
+                EnterIdleOrFollow();
             }
         }
 
@@ -318,12 +320,6 @@ namespace WildTamer
 
         private void BecomeFlockUnit()
         {
-            if (_flockMovementLogic != null)
-            {
-                _movementLogic = Instantiate(_flockMovementLogic);
-                _movementLogic.Initialize(this);
-            }
-
             FlockManager.Instance?.AddUnit(this);
             EnterFollow();
         }

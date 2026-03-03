@@ -14,10 +14,10 @@ namespace WildTamer
     public class FlockMoveLogic : MovementLogic
     {
         [Header("Flocking Weights")]
-        [SerializeField] private float _separationWeight = 1.5f;
+        [SerializeField] private float _separationWeight = 1.0f;
         [SerializeField] private float _alignmentWeight  = 1.0f;
         [SerializeField] private float _cohesionWeight   = 1.0f;
-        [SerializeField] private float _targetWeight     = 2.0f;
+        [SerializeField] private float _targetWeight     = 3.0f;
 
         [Header("Separation")]
         [SerializeField] private float _separationRadius = 1.5f;
@@ -52,13 +52,11 @@ namespace WildTamer
             if (owner.IsMotionSuspended) return;
 
             Vector3 separation = CalculateSeparation(owner, nearbyUnits);
-            Vector3 alignment  = CalculateAlignment(nearbyUnits);
-            Vector3 cohesion   = CalculateCohesion(owner, nearbyUnits);
             Vector3 targetSeek = CalculateTargetSeek(owner, targetPosition);
 
+            // FormationHelper가 정의한 슬롯(targetPosition)을 강하게 따르되,
+            // 유닛 간 과도한 겹침만 separation으로 완화한다.
             Vector3 desired = separation * _separationWeight
-                            + alignment  * _alignmentWeight
-                            + cohesion   * _cohesionWeight
                             + targetSeek * _targetWeight;
 
             if (desired.magnitude > _maxSpeed)
