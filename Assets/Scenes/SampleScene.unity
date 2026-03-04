@@ -683,7 +683,7 @@ PrefabInstance:
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _data
       value: 
-      objectReference: {fileID: 11400000, guid: b146e821a035f5d45a367dc1bc6cabf0, type: 2}
+      objectReference: {fileID: 11400000, guid: 33d49fbccf0acb1498b307422c6cb423, type: 2}
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _factionId
       value: 2
@@ -1031,7 +1031,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1100,7 +1100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1169,7 +1169,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1187,7 +1187,7 @@ PrefabInstance:
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _data
       value: 
-      objectReference: {fileID: 11400000, guid: b146e821a035f5d45a367dc1bc6cabf0, type: 2}
+      objectReference: {fileID: 11400000, guid: 33d49fbccf0acb1498b307422c6cb423, type: 2}
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _factionId
       value: 2
@@ -1239,6 +1239,10 @@ PrefabInstance:
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_Name
       value: monsterBase (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1356,7 +1360,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1542,7 +1546,7 @@ PrefabInstance:
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _data
       value: 
-      objectReference: {fileID: 11400000, guid: b146e821a035f5d45a367dc1bc6cabf0, type: 2}
+      objectReference: {fileID: 11400000, guid: 33d49fbccf0acb1498b307422c6cb423, type: 2}
     - target: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: _factionId
       value: 2
@@ -1595,6 +1599,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: monsterBase
       objectReference: {fileID: 0}
+    - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1646,6 +1654,55 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.CombatSystem
   _scanInterval: 0.2
+--- !u!1 &1122123751
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1122123752}
+  - component: {fileID: 1122123753}
+  m_Layer: 0
+  m_Name: FOWController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1122123752
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122123751}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 3.19688, y: 0.77568, z: -0.8588201}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1999780766}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1122123753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122123751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f768eb8de21ea640ad843d1abec53c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.FowController
+  _camera: {fileID: 330585545}
+  _stampShader: {fileID: 4800000, guid: 3d51b0ee9eccf2649a4a3ad24491e167, type: 3}
+  _brushRadiusUV: 0.15
+  _movementThreshold: 0.5
+  _fowTextureSize: 256
 --- !u!1 &1269863535
 GameObject:
   m_ObjectHideFlags: 0
@@ -2174,7 +2231,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2236,6 +2293,7 @@ Transform:
   - {fileID: 448301169}
   - {fileID: 1089166774}
   - {fileID: 1995880429}
+  - {fileID: 1999780766}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1995880428
@@ -2291,6 +2349,53 @@ MonoBehaviour:
   _flashDuration: 0.1
   _sparkPrefab: {fileID: 7731300135166986554, guid: 2228abde741ad1a4b9ae0b819abc6f28, type: 3}
   _sparkPoolSize: 10
+--- !u!1 &1999780765
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1999780766}
+  - component: {fileID: 1999780767}
+  m_Layer: 0
+  m_Name: MinimapController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1999780766
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999780765}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -3.19688, y: -0.77568, z: 0.8588201}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1122123752}
+  m_Father: {fileID: 1940057188}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1999780767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999780765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 149606a304c7b704692a04929d5fc652, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MinimapController
+  _mapData: {fileID: 11400000, guid: 70329065586fc97478322948ea63f528, type: 2}
+  _renderTextureSize: 256
 --- !u!1 &2005055710
 GameObject:
   m_ObjectHideFlags: 0
