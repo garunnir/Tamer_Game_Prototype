@@ -1,22 +1,15 @@
-using UnityEngine;
-
 namespace WildTamer
 {
     public enum CombatTeam { Ally, Enemy }
 
     /// <summary>
-    /// Shared contract for any object that participates in auto-combat.
-    /// Implemented by FlockUnitCombat (allies) and MonsterBase (enemies).
-    /// CombatSystem uses this interface exclusively for targeting and damage dispatch.
+    /// Contract for objects that participate in auto-combat.
+    /// Extends IDamageable and ITargetable; adds CombatSystem-specific members.
     /// </summary>
-    public interface ICombatant
+    public interface ICombatant : IDamageable, ITargetable
     {
         CombatTeam Team           { get; }
-        Transform  Transform      { get; }
-        bool       IsAlive        { get; }
         float      DetectionRange { get; }
-
-        void TakeDamage(float amount);
 
         /// <summary>
         /// Called by CombatSystem every 0.2 s with the nearest valid target in range,

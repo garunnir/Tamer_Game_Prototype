@@ -16,16 +16,12 @@ namespace WildTamer
     ///   Idle/Patrol/Chase/Attack — standard enemy loop.
     ///   Follow                   — tamed unit; movement driven by FlockManager,
     ///                              attack logic ticked here.
-    ///   Dead                     — terminal; fires OnMonsterDied then deactivates.
+    ///   Dead                     — terminal; fires GlobalEvents.OnUnitDied then deactivates.
     ///
     /// Faction change (taming): call SetFaction(FactionId.Player).
     /// </summary>
-    public class MonsterUnit : MonoBehaviour, ICombatant, IHitReactive
+    public class MonsterUnit : MonoBehaviour, ICombatant, ITeamable, ITameable, IHitReactive
     {
-        // ── Static Events ────────────────────────────────────────────────────
-
-        public static event System.Action<MonsterUnit> OnMonsterDied;
-
         // ── Inspector ────────────────────────────────────────────────────────
 
         [Header("Data")]
@@ -43,12 +39,13 @@ namespace WildTamer
         [SerializeField] private float _patrolRadius = 5f;
         [SerializeField] private float _idleDuration = 2f;
 
-        // ── ICombatant ───────────────────────────────────────────────────────
+        // ── ICombatant / ITargetable / ITeamable ─────────────────────────────
 
         public CombatTeam Team           => FactionSystem.ToCombatTeam(_factionId);
         public Transform  Transform      => transform;
         public bool       IsAlive        => _currentHP > 0f;
         public float      DetectionRange => _data != null ? _data.DetectionRange : 0f;
+        public FactionId  Faction        => _factionId;
 
         // ── Public (read by strategy SOs) ────────────────────────────────────
 
@@ -60,6 +57,8 @@ namespace WildTamer
 
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
+
+        private const float TamingHealFraction = 0.3f;
 
         // ── Runtime state ────────────────────────────────────────────────────
 
@@ -262,7 +261,7 @@ namespace WildTamer
             _currentHP     = 0f;
             _currentTarget = null;
             FlockManager.Instance?.RemoveUnit(this);
-            OnMonsterDied?.Invoke(this);
+            GlobalEvents.FireUnitDied(this);
             gameObject.SetActive(false);
         }
 
@@ -275,7 +274,22 @@ namespace WildTamer
             _currentHP -= amount;
             EffectManager.Instance?.TriggerHitEffect(this, transform.position);
             if (_currentHP <= 0f)
+                TryTameOrDie();
+        }
+
+        private void TryTameOrDie()
+        {
+            float chance = _data != null ? _data.TamingChance : 0f;
+            if (Random.value < chance)
+            {
+                _currentTarget = null;
+                _currentHP     = (_data != null ? _data.MaxHP : 1f) * TamingHealFraction;
+                Tame();
+            }
+            else
+            {
                 EnterDead();
+            }
         }
 
         public void OnTargetAssigned(ICombatant target)
@@ -316,6 +330,15 @@ namespace WildTamer
 
             if (newFaction == FactionId.Player)
                 BecomeFlockUnit();
+        }
+
+        /// <summary>
+        /// ITameable: switches faction to Player and fires the global taming event.
+        /// </summary>
+        public void Tame()
+        {
+            SetFaction(FactionId.Player);
+            GlobalEvents.FireTamingSucceeded(this);
         }
 
         private void BecomeFlockUnit()
