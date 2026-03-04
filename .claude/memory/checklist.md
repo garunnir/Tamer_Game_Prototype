@@ -18,49 +18,49 @@ Step 0: Interfaces & Events (Foundation)
 
 Step 1: Core Taming Logic (Faction & Reset)
 
-[ ] Implement probability-based taming logic within the TakeDamage method.
+[x] Implement probability-based taming logic within the TakeDamage method.
 
-[ ] On success: Immediately clear targeting info and handle Faction transition (to Player).
+[x] On success: Immediately clear targeting info and handle Faction transition (to Player).
 
-[ ] Implement team registry updates within the CombatSystem.
+[x] Implement team registry updates within the CombatSystem.
 
 Step 2: Squad Capacity Management (Flock FIFO)
 
-[ ] Implement squad size limits (e.g., 20 units) in FlockManager.
+[x] Implement squad size limits (e.g., 20 units) in FlockManager.
 
-[ ] Implement First-In-First-Out (FIFO) unit release and transition to FactionId.Neutral.
+[x] Implement First-In-First-Out (FIFO) unit release and transition to FactionId.Neutral.
 
-[ ] Ensure AI State Machine reset for released units.
+[x] Ensure AI State Machine reset for released units.
 
 🗺️ Phase 2: Minimap & Fog of War (URP Tech)
 
 Step 3: Minimap Foundation (Coordinate System)
 
-[ ] Design the MapData ScriptableObject (World Center, World Size).
+[x] Design the MapData ScriptableObject (World Center, World Size).
 
-[ ] Implement WorldToMinimapUV conversion utility (including Mathf.Clamp01).
+[x] Implement WorldToMinimapUV conversion utility (including Mathf.Clamp01).
 
 Step 4: Fog of War (Rendering Optimization)
 
-[ ] Implement ScriptableRenderPass or CommandBuffer compliant with the latest Render Graph or equivalent URP rendering workflows.
+[x] Implement ScriptableRenderPass or CommandBuffer compliant with the latest Render Graph or equivalent URP rendering workflows.
 
-[ ] Avoid direct RenderTexture.active manipulation; implement an efficient brush stamp logic.
+[x] Avoid direct RenderTexture.active manipulation; implement an efficient brush stamp logic.
 
-[ ] Optimize execution based on camera movement distance (e.g., > 0.5 units).
+[x] Optimize execution based on camera movement distance (e.g., > 0.5 units).
 
 Step 5: Minimap UI Shader (URP HLSL)
 
-[ ] Write a pure HLSL Unlit Shader (not Shader Graph) or equivalent code.
+[x] Write a pure HLSL Unlit Shader (not Shader Graph) or equivalent code.
 
-[ ] Implement smoothstep for soft fog edges.
+[x] Implement smoothstep for soft fog edges.
 
-[ ] Ensure UI hierarchy instructions are stored in manual_setting.md.
+[x] Ensure UI hierarchy instructions are stored in manual_setting.md.
 
 Step 6: Minimap Unit Tracking (Entity Tracking)
 
-[ ] Implement a system to differentiate icons by faction (e.g., Blue/Red).
+[x] Implement a system to differentiate icons by faction (e.g., Blue/Red).
 
-[ ] Implement icon visibility logic based on Fog of War revealed/hidden data.
+[x] Implement icon visibility logic based on Fog of War revealed/hidden data.
 
 🎨 Phase 3: Feedback & System Integration
 

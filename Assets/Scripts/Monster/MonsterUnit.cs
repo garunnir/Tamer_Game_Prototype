@@ -112,12 +112,15 @@ namespace WildTamer
             else
                 Debug.LogWarning($"[{name}] CombatSystem not found in scene.");
 
+            MinimapUnitTracker.Instance?.Register(this);
+
             EnterIdle();
         }
 
         private void OnDisable()
         {
             CombatSystem.Instance?.UnregisterCombatant(this);
+            MinimapUnitTracker.Instance?.Unregister(this);
         }
 
         private void Update()
