@@ -1,3 +1,5 @@
+using System;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -49,8 +51,11 @@ namespace WildTamer
         private static readonly int PropBrushRadius = Shader.PropertyToID("_BrushRadius");
         private static readonly int PropBrushTex    = Shader.PropertyToID("_BrushTex");
 
-        private const int   BrushResolution = 64;
-        private const float MinThreshold    = 0.001f;
+        private const int   BrushResolution  = 64;
+        private const float MinThreshold     = 0.001f;
+        public  const int   FogSnapshotSize  = 64;
+
+        private RenderTexture _snapshotRT;   // lazy-created; released in OnDestroy
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
 
@@ -110,7 +115,53 @@ namespace WildTamer
             _cmd?.Dispose();
             if (_stampMaterial != null) Destroy(_stampMaterial);
             if (_brushTexture  != null) Destroy(_brushTexture);
-            if (FowRT != null) { FowRT.Release(); Destroy(FowRT); }
+            if (FowRT          != null) { FowRT.Release(); Destroy(FowRT); }
+            if (_snapshotRT    != null) { _snapshotRT.Release(); Destroy(_snapshotRT); }
+        }
+
+        // ── Save / Load snapshot ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Async GPU readback: downscales FowRT to 64×64 R8 and returns the raw bytes
+        /// via <paramref name="callback"/> on the main thread. Passes null on error.
+        /// </summary>
+        public void RequestFogSnapshot(Action<byte[]> callback)
+        {
+            if (FowRT == null) { callback(null); return; }
+
+            if (_snapshotRT == null)
+            {
+                _snapshotRT            = new RenderTexture(FogSnapshotSize, FogSnapshotSize, 0, RenderTextureFormat.R8);
+                _snapshotRT.filterMode = FilterMode.Bilinear;
+                _snapshotRT.Create();
+            }
+
+            Graphics.Blit(FowRT, _snapshotRT);
+
+            AsyncGPUReadback.Request(_snapshotRT, 0, TextureFormat.R8, req =>
+            {
+                if (req.hasError) { callback(null); return; }
+                callback(req.GetData<byte>().ToArray());
+            });
+        }
+
+        /// <summary>
+        /// Restores previously saved fog pixels into FowRT (sync, called on load).
+        /// </summary>
+        public void RestoreFogSnapshot(byte[] pixels, int width, int height)
+        {
+            if (FowRT == null || pixels == null) return;
+
+            Texture2D tex = new Texture2D(width, height, TextureFormat.R8, false);
+            tex.LoadRawTextureData(pixels);
+            tex.Apply();
+
+            RenderTexture.active = FowRT;
+            GL.Clear(true, true, Color.clear);
+            RenderTexture.active = null;
+
+            Graphics.Blit(tex, FowRT);
+            Destroy(tex);
         }
 
         // ── Stamping ─────────────────────────────────────────────────────────

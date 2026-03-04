@@ -465,6 +465,10 @@ namespace WildTamer
             _movementLogic?.OnAttackFired(this);
         }
 
+        /// <summary>Directly sets HP (used by SaveManager on load, before faction assignment).</summary>
+        public void SetHP(float value) =>
+            _currentHP = Mathf.Clamp(value, 1f, _data != null ? _data.MaxHP : value);
+
         // ── Squash & Stretch ─────────────────────────────────────────────────
 
         private void UpdateSquashStretch()

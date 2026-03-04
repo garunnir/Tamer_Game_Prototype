@@ -37,6 +37,7 @@ namespace WildTamer
         // ── Runtime state ────────────────────────────────────────────────────
 
         private readonly List<MonsterUnit>   _units        = new List<MonsterUnit>();
+        public IReadOnlyList<MonsterUnit> Units => _units;
         private readonly List<FlockMoveLogic> _flockLogics  = new List<FlockMoveLogic>();
         private readonly List<MonsterUnit>   _nearbyBuffer = new List<MonsterUnit>();
 
