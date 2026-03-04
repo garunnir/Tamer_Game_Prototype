@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: MapData
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MapData
   _worldCenter: {x: 0, y: 0}
-  _worldSize: {x: 200, y: 200}
+  _worldSize: {x: 1000, y: 1000}

@@ -159,5 +159,5 @@ Shader "WildTamer/MinimapFog"
     }
 
     // No fallback — UI shaders should not silently fall back to legacy pipelines.
-    FallbackError
+    Fallback Off
 }
