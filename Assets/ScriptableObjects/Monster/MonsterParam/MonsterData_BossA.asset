@@ -16,9 +16,9 @@ MonoBehaviour:
   _maxHP: 500
   _attackDamage: 40
   _moveSpeed: 2
-  _attackRange: 3
+  _attackRange: 6
   _detectionRange: 15
   _tamingChance: 0.05
   _attackCooldown: 1.5
-  _defaultMovementLogic: {fileID: 11400000, guid: ae27f6ee38b9a0e41955359c2c1cb0d9, type: 2}
+  _defaultMovementLogic: {fileID: 11400000, guid: a1746df60e4ab7843a07483f2d435b92, type: 2}
   _defaultAttackLogic: {fileID: 11400000, guid: 1298f393609e19849a064b35c3855c32, type: 2}

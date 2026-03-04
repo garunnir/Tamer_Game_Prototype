@@ -17,9 +17,9 @@
 - **MonsterUnit** is the only monster class. No subclasses. (`Scripts/Monster/MonsterUnit.cs`)
 - **Passive Executor:** `MonsterUnit` owns the state machine skeleton and helper methods only. No hardcoded behavior logic inside it.
 - **Strategy Pattern:** All behavior is injected via `MovementLogic` and `AttackLogic` ScriptableObjects. Always clone SOs in `Awake()` — `Instantiate(source)` — so each unit has independent runtime state.
-- **Flock initial units:** Any unit listed in `FlockManager._initialUnits` must start as a full Player flock member (Follow state, flock movement). See `.claude/memory/decisions/flock-initial-units.md` for details.
+- **Flock initial units:** Any unit listed in `FlockManager._initialUnits` must start as a full Player flock member (Follow state, flock movement). See `.claude/memory/decisions/decisions.md` for details.
 - **FactionSystem** is a `static` utility class (no scene object). Use `FactionSystem.AreHostile(a, b)` — never compare `teamID` directly.
-- **Taming:** Call `MonsterUnit.SetFaction(FactionId.Player)`. Details → `.claude/memory/decisions/strategy-pattern.md`
+- **Taming:** Call `MonsterUnit.SetFaction(FactionId.Player)`. Details → `.claude/memory/decisions/decisions.md`
 
 ## Folder Structure
 ```
