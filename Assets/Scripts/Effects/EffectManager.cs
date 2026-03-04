@@ -39,7 +39,7 @@ namespace WildTamer
         [SerializeField] private float _shakeDuration  = 0.1f;
 
         [Header("Color Flash")]
-        [SerializeField] private Color _flashColor    = Color.red;
+        [SerializeField] private Color _flashColor    = Color.white;
         [SerializeField] private float _flashDuration = 0.1f;
 
         [Header("Spark Pool")]
@@ -130,7 +130,8 @@ namespace WildTamer
             rend.GetPropertyBlock(originalBlock);
 
             var flashBlock = new MaterialPropertyBlock();
-            flashBlock.SetColor("_Color", _flashColor);
+            flashBlock.SetColor("_BaseColor",     _flashColor);
+            flashBlock.SetColor("_EmissionColor", _flashColor);
             rend.SetPropertyBlock(flashBlock);
 
             yield return new WaitForSeconds(_flashDuration);

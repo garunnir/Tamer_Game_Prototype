@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace WildTamer
@@ -39,6 +40,12 @@ namespace WildTamer
         [SerializeField] private float _patrolRadius = 5f;
         [SerializeField] private float _idleDuration = 2f;
 
+        [Header("Squash & Stretch")]
+        [SerializeField] private float _stretchFactor  = 0.20f;
+        [SerializeField] private float _squashFactor   = 0.30f;
+        [SerializeField] private float _squashDuration = 0.15f;
+        [SerializeField] private float _scaleSmoothing = 12f;
+
         // ── ICombatant / ITargetable / ITeamable ─────────────────────────────
 
         public CombatTeam Team           => FactionSystem.ToCombatTeam(_factionId);
@@ -60,6 +67,7 @@ namespace WildTamer
 
         private const float TamingHealFraction   = 0.3f;
         private const float ReleaseDespawnDelay  = 5f;
+        private const float TamingAnimDuration   = 0.9f;
 
         // ── Runtime state ────────────────────────────────────────────────────
 
@@ -74,6 +82,10 @@ namespace WildTamer
         private Vector3       _patrolTarget;
         private MovementLogic _movementLogic;
         private AttackLogic   _attackLogic;
+        private Vector3       _baseScale;
+        private float         _currentSpeed;
+        private float         _prevSpeed;
+        private float         _squashTimer;
 
         // ── Unity Lifecycle ──────────────────────────────────────────────────
 
@@ -81,6 +93,7 @@ namespace WildTamer
         {
             _spawnPoint   = transform.position;
             _patrolTarget = _spawnPoint;
+            _baseScale    = transform.localScale;
 
             if (_data == null)
             {
@@ -125,6 +138,8 @@ namespace WildTamer
 
         private void Update()
         {
+            _currentSpeed = 0f;
+
             if (_suspendTimer > 0f)
             {
                 _suspendTimer -= Time.deltaTime;
@@ -150,6 +165,8 @@ namespace WildTamer
                 case MonsterState.Follow: UpdateFollow(); break;
                 case MonsterState.Dead:   break;
             }
+
+            UpdateSquashStretch();
         }
 
         // ── State Updates ────────────────────────────────────────────────────
@@ -348,12 +365,13 @@ namespace WildTamer
         }
 
         /// <summary>
-        /// ITameable: switches faction to Player and fires the global taming event.
+        /// ITameable: plays the taming absorption animation, then switches faction
+        /// to Player and fires the global taming event at the end of the animation.
         /// </summary>
         public void Tame()
         {
-            SetFaction(FactionId.Player);
-            GlobalEvents.FireTamingSucceeded(this);
+            _suspendTimer = TamingAnimDuration + 0.1f;
+            StartCoroutine(TamingAbsorptionCoroutine());
         }
 
         /// <summary>
@@ -386,6 +404,7 @@ namespace WildTamer
 
             if (direction.magnitude < 0.001f) return;
 
+            _currentSpeed = speed;
             direction.Normalize();
             transform.position += direction * speed * Time.deltaTime;
             VelocityDirection   = direction;
@@ -405,6 +424,7 @@ namespace WildTamer
         {
             if (velocity.magnitude < 0.001f) return;
 
+            _currentSpeed       = velocity.magnitude;
             transform.position += velocity * Time.deltaTime;
             VelocityDirection   = velocity.normalized;
 
@@ -443,6 +463,94 @@ namespace WildTamer
         public void NotifyAttackFired()
         {
             _movementLogic?.OnAttackFired(this);
+        }
+
+        // ── Squash & Stretch ─────────────────────────────────────────────────
+
+        private void UpdateSquashStretch()
+        {
+            if (_baseScale == Vector3.zero) return;
+
+            float maxSpeed = _data != null ? _data.MoveSpeed : 1f;
+            float speedT   = Mathf.Clamp01(_currentSpeed / Mathf.Max(maxSpeed, 0.001f));
+
+            // Detect stop event: was moving, now stopped.
+            if (_prevSpeed > maxSpeed * 0.3f && _currentSpeed < maxSpeed * 0.05f)
+                _squashTimer = _squashDuration;
+
+            Vector3 targetScale;
+            if (_squashTimer > 0f)
+            {
+                _squashTimer -= Time.deltaTime;
+                float squashY  = 1f - _squashFactor;
+                float squashXZ = 1f + _squashFactor * 0.5f;
+                targetScale = new Vector3(
+                    _baseScale.x * squashXZ,
+                    _baseScale.y * squashY,
+                    _baseScale.z * squashXZ
+                );
+            }
+            else
+            {
+                float stretchY  = 1f + _stretchFactor * speedT;
+                float stretchXZ = 1f - _stretchFactor * 0.5f * speedT;
+                targetScale = new Vector3(
+                    _baseScale.x * stretchXZ,
+                    _baseScale.y * stretchY,
+                    _baseScale.z * stretchXZ
+                );
+            }
+
+            transform.localScale = Vector3.Lerp(
+                transform.localScale,
+                targetScale,
+                _scaleSmoothing * Time.deltaTime
+            );
+
+            _prevSpeed = _currentSpeed;
+        }
+
+        // ── Taming Absorption ────────────────────────────────────────────────
+
+        private IEnumerator TamingAbsorptionCoroutine()
+        {
+            PlayerController player = FindObjectOfType<PlayerController>();
+            Transform playerTransform = player != null ? player.transform : null;
+
+            Vector3    startPos = transform.position;
+            Quaternion startRot = transform.rotation;
+
+            Vector3 toPlayer = playerTransform != null
+                ? (playerTransform.position - startPos)
+                : transform.forward;
+            toPlayer.y = 0f;
+            if (toPlayer.sqrMagnitude < 0.001f) toPlayer = transform.forward;
+
+            Quaternion facePlayerRot = Quaternion.LookRotation(toPlayer.normalized, Vector3.up);
+
+            float elapsed = 0f;
+            while (elapsed < TamingAnimDuration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / TamingAnimDuration;
+
+                Vector3 playerPos = playerTransform != null ? playerTransform.position : startPos;
+
+                // First half: slerp to face player.
+                transform.rotation = Quaternion.Slerp(startRot, facePlayerRot, Mathf.Clamp01(t * 2f));
+
+                // Pulse scale: 0 → peak → 0.
+                transform.localScale = _baseScale * (1f + 0.6f * Mathf.Sin(t * Mathf.PI));
+
+                // Second half: fly toward player.
+                transform.position = Vector3.Lerp(startPos, playerPos, Mathf.Clamp01((t - 0.5f) * 2f));
+
+                yield return null;
+            }
+
+            transform.localScale = _baseScale;
+            SetFaction(FactionId.Player);
+            GlobalEvents.FireTamingSucceeded(this);
         }
     }
 }
