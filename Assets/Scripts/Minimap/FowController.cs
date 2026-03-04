@@ -117,7 +117,10 @@ namespace WildTamer
 
         private void StampAtCamera()
         {
-            Vector2 stampUV = MinimapController.Instance.WorldToMinimapUV(_camera.transform.position);
+            // Always stamp in global UV so the FoW RT stores a persistent world-space
+            // explored map. MinimapFog.shader samples the FoW at bgUV (also global),
+            // keeping fog aligned with the background in both Global and Local view modes.
+            Vector2 stampUV = MinimapController.Instance.WorldToGlobalUV(_camera.transform.position);
 
             _stampMaterial.SetVector(PropStampUV,     new Vector4(stampUV.x, stampUV.y, 0f, 0f));
             _stampMaterial.SetFloat (PropBrushRadius, _brushRadiusUV);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 namespace WildTamer
 {
@@ -64,13 +65,15 @@ namespace WildTamer
         {
             public MonsterUnit   Unit;
             public RectTransform Icon;
+            public Image         IconImage;  // cached; toggled via enabled, not SetActive
             public bool          IsAllyIcon; // which pool this icon came from
         }
 
         // ── Runtime state ────────────────────────────────────────────────────
 
-        private readonly List<TrackedUnit>    _tracked   = new List<TrackedUnit>();
+        private readonly List<TrackedUnit>    _tracked     = new List<TrackedUnit>();
         private RectTransform                 _playerIcon;
+        private Image                         _playerIconImage;
 
         // Async FoW CPU cache (written in readback callback, read in UpdateIconPositions)
         private Color32[] _fowCache;
@@ -98,7 +101,10 @@ namespace WildTamer
         private void Start()
         {
             if (_playerTransform != null)
-                _playerIcon = SpawnIcon(isAlly: true);
+            {
+                _playerIcon      = SpawnIcon(isAlly: true);
+                _playerIconImage = _playerIcon != null ? _playerIcon.GetComponent<Image>() : null;
+            }
 
             // Stagger readback slightly so it doesn't coincide with the first icon update.
             InvokeRepeating(nameof(UpdateIconPositions), 0f,    _iconUpdateInterval);
@@ -123,11 +129,13 @@ namespace WildTamer
             foreach (TrackedUnit t in _tracked)
                 if (t.Unit == unit) return;
 
-            bool isAlly = unit.Faction == FactionId.Player;
+            bool         isAlly = unit.Faction == FactionId.Player;
+            RectTransform icon  = GetPooledIcon(isAlly);
             _tracked.Add(new TrackedUnit
             {
                 Unit       = unit,
-                Icon       = GetPooledIcon(isAlly),
+                Icon       = icon,
+                IconImage  = icon != null ? icon.GetComponent<Image>() : null,
                 IsAllyIcon = isAlly
             });
         }
@@ -153,47 +161,68 @@ namespace WildTamer
         {
             if (_minimapRect == null || MinimapController.Instance == null) return;
 
-            // Player icon — permanent, always blue, always visible.
+            // Keep Local-view center in sync with the player every tick.
+            if (_playerTransform != null)
+                MinimapController.Instance.SetViewCenter(_playerTransform.position);
+
+            // ── Player icon — always blue, always in the center of Local view ──
             if (_playerIcon != null && _playerTransform != null)
             {
                 Vector2 uv = MinimapController.Instance.WorldToMinimapUV(_playerTransform.position);
                 PlaceIcon(_playerIcon, uv);
-                _playerIcon.gameObject.SetActive(true);
+
+                // Activate GO once (spawned inactive from pool).
+                if (!_playerIcon.gameObject.activeSelf)
+                    _playerIcon.gameObject.SetActive(true);
+
+                if (_playerIconImage != null)
+                    _playerIconImage.enabled = true;
             }
 
-            // Unit icons
+            // ── Unit icons ────────────────────────────────────────────────────
             for (int i = _tracked.Count - 1; i >= 0; i--)
             {
                 TrackedUnit entry = _tracked[i];
 
+                // Dead / destroyed — hide via Image.enabled (no layout rebuild).
                 if (entry.Unit == null || !entry.Unit.IsAlive)
                 {
-                    // Dead units will be removed by HandleUnitDied; just hide for now.
-                    if (entry.Icon != null)
-                        entry.Icon.gameObject.SetActive(false);
+                    if (entry.IconImage != null) entry.IconImage.enabled = false;
                     continue;
                 }
 
-                // ── Detect faction swap (taming Enemy→Player or release Player→Neutral) ──
+                // ── Detect faction swap (taming Enemy→Player or release) ──────
                 bool shouldBeAlly = entry.Unit.Faction == FactionId.Player;
                 if (shouldBeAlly != entry.IsAllyIcon)
                 {
                     ReturnToPool(entry.Icon, entry.IsAllyIcon);
                     entry.Icon       = GetPooledIcon(shouldBeAlly);
+                    entry.IconImage  = entry.Icon != null ? entry.Icon.GetComponent<Image>() : null;
                     entry.IsAllyIcon = shouldBeAlly;
                 }
 
                 if (entry.Icon == null) continue;
 
-                // ── Position ──
-                Vector2 uv = MinimapController.Instance.WorldToMinimapUV(entry.Unit.Transform.position);
-                PlaceIcon(entry.Icon, uv);
+                // ── Activate GO once when leaving the pool (cheap, fires once) ─
+                if (!entry.Icon.gameObject.activeSelf)
+                    entry.Icon.gameObject.SetActive(true);
 
-                // ── Visibility ──
-                // Allies are always visible.
-                // Enemies are only visible when their position is revealed in the FoW mask.
-                bool visible = shouldBeAlly || IsRevealed(uv);
-                entry.Icon.gameObject.SetActive(visible);
+                // ── Position (always update so the icon is ready when revealed) ─
+                Vector2 localUV = MinimapController.Instance.WorldToMinimapUV(entry.Unit.Transform.position);
+                PlaceIcon(entry.Icon, localUV);
+
+                // ── Visibility ───────────────────────────────────────────────
+                // Out-of-view-window gate (Local mode only; always passes in Global mode).
+                bool inWindow = MinimapController.Instance.IsInViewWindow(entry.Unit.Transform.position);
+
+                // FoW visibility check uses global UV because the FoW RT is
+                // stamped in global UV space (WorldToGlobalUV in FowController).
+                Vector2 globalUV = MinimapController.Instance.WorldToGlobalUV(entry.Unit.Transform.position);
+                bool    visible  = inWindow && (shouldBeAlly || IsRevealed(globalUV));
+
+                // Toggle Image.enabled instead of SetActive to avoid Canvas rebuild.
+                if (entry.IconImage != null)
+                    entry.IconImage.enabled = visible;
             }
         }
 
