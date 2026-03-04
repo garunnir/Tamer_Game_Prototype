@@ -104,10 +104,7 @@ namespace WildTamer
             }
 
             if (_units.Count >= _maxUnits)
-            {
-                Debug.LogWarning("[FlockManager] Max unit count reached. Cannot add more units.");
-                return;
-            }
+                ReleaseOldest();
 
             int newIndex = _units.Count;
             _units.Add(unit);
@@ -137,6 +134,21 @@ namespace WildTamer
             _units.RemoveAt(index);
             _flockLogics.RemoveAt(index);
             _formationHelper?.Recalculate(_units.Count);
+        }
+
+        // ── Private helpers ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// Evicts the oldest flock member (index 0) to make room for a new tame.
+        /// The released unit switches to Neutral, patrols briefly, then despawns.
+        /// </summary>
+        private void ReleaseOldest()
+        {
+            MonsterUnit evicted = _units[0];
+            _units.RemoveAt(0);
+            _flockLogics.RemoveAt(0);
+            _formationHelper?.Recalculate(_units.Count);
+            evicted.ReleaseFromFlock();
         }
 
         // ── Internal helpers ─────────────────────────────────────────────────

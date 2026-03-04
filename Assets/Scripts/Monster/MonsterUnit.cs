@@ -58,7 +58,8 @@ namespace WildTamer
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
 
-        private const float TamingHealFraction = 0.3f;
+        private const float TamingHealFraction   = 0.3f;
+        private const float ReleaseDespawnDelay  = 5f;
 
         // ── Runtime state ────────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ namespace WildTamer
         private ICombatant    _currentTarget;
         private float         _currentHP;
         private float         _suspendTimer;
+        private float         _releaseTimer;
         private float         _idleTimer;
         private float         _sqrAttackRange;
         private Vector3       _spawnPoint;
@@ -124,6 +126,16 @@ namespace WildTamer
             {
                 _suspendTimer -= Time.deltaTime;
                 return;
+            }
+
+            if (_releaseTimer > 0f)
+            {
+                _releaseTimer -= Time.deltaTime;
+                if (_releaseTimer <= 0f)
+                {
+                    gameObject.SetActive(false);
+                    return;
+                }
             }
 
             switch (_state)
@@ -339,6 +351,20 @@ namespace WildTamer
         {
             SetFaction(FactionId.Player);
             GlobalEvents.FireTamingSucceeded(this);
+        }
+
+        /// <summary>
+        /// Called by FlockManager when the squad is full and this unit is evicted (FIFO).
+        /// Clears targeting, switches to Neutral so FactionSystem ignores it,
+        /// enters Patrol, then despawns after ReleaseDespawnDelay seconds.
+        /// </summary>
+        public void ReleaseFromFlock()
+        {
+            _currentTarget = null;
+            _spawnPoint    = transform.position;   // patrol around current location
+            SetFaction(FactionId.Neutral);
+            EnterPatrol();
+            _releaseTimer = ReleaseDespawnDelay;
         }
 
         private void BecomeFlockUnit()
