@@ -57,6 +57,9 @@ namespace WildTamer
         private Vector3 Anchor => _playerTransform.position
                                 + (_playerTransform.rotation * _pivotOffset);
 
+        // Y축 회전만 추출 — 포메이션 슬롯을 XZ 평면에서만 회전시켜 지형 관통 방지
+        private Quaternion PlayerYaw => Quaternion.Euler(0f, _playerTransform.eulerAngles.y, 0f);
+
         // ── Unity lifecycle ──────────────────────────────────────────────────
 
         private void Awake()
@@ -88,11 +91,12 @@ namespace WildTamer
         {
             if (_playerTransform == null || _units.Count == 0) return;
 
-            Vector3 anchor = Anchor;
+            Vector3    anchor = Anchor;
+            Quaternion yaw    = PlayerYaw;
 
             // dirty 상태면 슬롯 재할당 수행
             if (_dirty)
-                RecalculateAssignments(anchor);
+                RecalculateAssignments(anchor, yaw);
 
             for (int i = 0; i < _units.Count; i++)
             {
@@ -100,9 +104,10 @@ namespace WildTamer
 
                 BuildNearbyBuffer(i);
 
-                // _assignments[i] 슬롯 인덱스를 사용해 월드 슬롯 위치 계산
+                // 플레이어 Y축 회전을 로컬 오프셋에 적용해 월드 슬롯 위치 계산
+                // Quaternion * Vector3: XZ 평면 회전만 수행 (오프셋 Y=0 보장됨)
                 Vector3 target = _formationHelper != null && _assignments != null
-                    ? anchor + _formationHelper.GetOffset(_assignments[i])
+                    ? anchor + (yaw * _formationHelper.GetOffset(_assignments[i]))
                     : anchor;
 
                 _flockLogics[i]?.TickWithNeighbors(_units[i], _nearbyBuffer, target);
@@ -134,9 +139,7 @@ namespace WildTamer
             {
                 _formationHelper.Recalculate(_units.Count);
                 _dirty = true; // 유닛 수 변화로 인해 슬롯 재할당 필요
-
-                if (_playerTransform != null)
-                    unit.transform.position = Anchor + _formationHelper.GetOffset(newIndex);
+                // 순간이동 없음: 유닛은 현재 위치에서 FlockMoveLogic이 슬롯까지 부드럽게 이동
             }
         }
 
@@ -177,7 +180,7 @@ namespace WildTamer
         /// 탐욕적(greedy) 방식으로 각 유닛에 가장 가까운 슬롯을 할당한다.
         /// 이미 선택된 슬롯은 다른 유닛이 선택하지 못하도록 slotTaken 배열로 관리한다.
         /// </summary>
-        private void RecalculateAssignments(Vector3 anchor)
+        private void RecalculateAssignments(Vector3 anchor, Quaternion yaw)
         {
             int unitCount = _units.Count;
             int slotCount = _formationHelper != null ? _formationHelper.SlotCount : 0;
@@ -190,12 +193,12 @@ namespace WildTamer
                 return;
             }
 
-            // 슬롯 월드 좌표 캐시 갱신
+            // 슬롯 월드 좌표 캐시 갱신 (Y축 회전 적용)
             if (_slots == null || _slots.Length != slotCount)
                 _slots = new Vector3[slotCount];
 
             for (int j = 0; j < slotCount; j++)
-                _slots[j] = anchor + _formationHelper.GetOffset(j);
+                _slots[j] = anchor + (yaw * _formationHelper.GetOffset(j));
 
             // 슬롯 중복 선택 방지용 플래그 배열 — 크기가 달라질 때만 재할당 (GC 방지)
             if (_slotTaken == null || _slotTaken.Length != slotCount)
@@ -253,10 +256,11 @@ namespace WildTamer
 
             _formationHelper.Recalculate(_units.Count);
 
-            Vector3 center = _playerTransform != null ? Anchor : transform.position;
+            Vector3    center = _playerTransform != null ? Anchor : transform.position;
+            Quaternion yaw    = _playerTransform != null ? PlayerYaw : Quaternion.identity;
 
             for (int i = 0; i < _units.Count; i++)
-                _units[i].transform.position = center + _formationHelper.GetOffset(i);
+                _units[i].transform.position = center + (yaw * _formationHelper.GetOffset(i));
 
             _dirty = true; // 초기 배치 후 슬롯 재할당 필요
         }
@@ -298,7 +302,8 @@ namespace WildTamer
         {
             if (_formationHelper == null || _playerTransform == null) return;
 
-            Vector3 anchor = Anchor;
+            Vector3    anchor = Anchor;
+            Quaternion yaw    = PlayerYaw;
 
             int slotCount = _formationHelper.SlotCount;
 
@@ -316,7 +321,7 @@ namespace WildTamer
 
             for (int j = 0; j < slotCount; j++)
             {
-                Vector3 worldSlot = anchor + _formationHelper.GetOffset(j);
+                Vector3 worldSlot = anchor + (yaw * _formationHelper.GetOffset(j));
 
                 // 할당된 슬롯은 청록색, 비어있는 슬롯은 빨간색으로 표시
                 Gizmos.color = assigned[j] ? Color.cyan : Color.red;
@@ -334,7 +339,7 @@ namespace WildTamer
                     int slotIdx = _assignments[i];
                     if (slotIdx < 0 || slotIdx >= slotCount) continue;
 
-                    Vector3 worldSlot = anchor + _formationHelper.GetOffset(slotIdx);
+                    Vector3 worldSlot = anchor + (yaw * _formationHelper.GetOffset(slotIdx));
                     Gizmos.DrawLine(_units[i].transform.position, worldSlot);
                 }
             }
