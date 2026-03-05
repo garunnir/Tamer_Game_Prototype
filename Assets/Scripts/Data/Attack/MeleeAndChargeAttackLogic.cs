@@ -54,6 +54,12 @@ namespace WildTamer
         [Tooltip("XZ shake magnitude (world units) during the windup vibration.")]
         [SerializeField] private float _vibrateAmplitude = 0.15f;
 
+        [Header("VFX")]
+        [Tooltip("Effect played at the owner's position when charge windup begins.")]
+        [SerializeField] private ParticleSystem _windupVfxPrefab;
+        [Tooltip("Effect played at the target's position on charge impact.")]
+        [SerializeField] private ParticleSystem _impactVfxPrefab;
+
         // ── Runtime ──────────────────────────────────────────────────────────
 
         private float _meleeTimer;
@@ -155,6 +161,8 @@ namespace WildTamer
             _windupTimer  = _chargeWindupDuration;
             _windupAnchor = owner.transform.position;
 
+            EffectManager.Instance?.PlayVfxAt(_windupVfxPrefab, owner.transform.position);
+
             // Lock direction now — player has _chargeWindupDuration seconds to sidestep
             Vector3 toTarget = target.Transform.position - owner.transform.position;
             toTarget.y = 0f;
@@ -207,6 +215,7 @@ namespace WildTamer
                 {
                     target.TakeDamage(_chargeDamage);
                     EffectManager.Instance?.TriggerHitstop(owner);
+                    EffectManager.Instance?.PlayVfxAt(_impactVfxPrefab, target.Transform.position);
                     _chargeDamageDealt = true;
                 }
             }

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.ZigzagRetreatMoveLogic
   _zigzagAmplitude: 10
   _zigzagFrequency: 0.5
-  _retreatDistance: 12
+  _retreatDistance: 3

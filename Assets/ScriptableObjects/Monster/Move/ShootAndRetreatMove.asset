@@ -9,9 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 954ef490b4816444cb26827d8b2de50f, type: 3}
-  m_Name: ProjectileAttack
-  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.ProjectileAttackLogic
-  _ignoreRangeCheck: 0
-  _retreatAfterFiring: 1
-  _muzzleVfxPrefab: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 7c7abc5bf101c84478657beb53b4f0ca, type: 3}
+  m_Name: ShootAndRetreatMove
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.ShootAndRetreatMoveLogic
+  _retreatAimDistance: 5

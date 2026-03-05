@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WildTamer
@@ -47,6 +48,7 @@ namespace WildTamer
         [SerializeField] private int _sparkPoolSize = 10;
 
         private ParticleSystem[] _sparkPool;
+        private readonly Dictionary<ParticleSystem, List<ParticleSystem>> _vfxPool = new();
 
         // ── Unity Lifecycle ──────────────────────────────────────────────────
 
@@ -93,6 +95,46 @@ namespace WildTamer
         public void TriggerHitstop(ICombatant attacker)
         {
             ApplyHitstop(attacker);
+        }
+
+        /// <summary>
+        /// Plays a one-shot particle effect at the given world position.
+        /// Instances are pooled per prefab — idle instances are reused, new ones created on demand.
+        /// Prefab's stopAction is overridden to Disable so instances return to the pool automatically.
+        /// </summary>
+        /// <param name="prefab">Source ParticleSystem prefab (assigned in each AttackLogic SO).</param>
+        /// <param name="position">World-space position where the effect plays.</param>
+        public void PlayVfxAt(ParticleSystem prefab, Vector3 position)
+        {
+            if (prefab == null) return;
+
+            if (!_vfxPool.TryGetValue(prefab, out var pool))
+            {
+                pool = new List<ParticleSystem>();
+                _vfxPool[prefab] = pool;
+            }
+
+            ParticleSystem ps = null;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                if (pool[i] != null && !pool[i].gameObject.activeInHierarchy)
+                {
+                    ps = pool[i];
+                    break;
+                }
+            }
+
+            if (ps == null)
+            {
+                ps = Instantiate(prefab);
+                var main = ps.main;
+                main.stopAction = ParticleSystemStopAction.Disable;
+                pool.Add(ps);
+            }
+
+            ps.transform.position = position;
+            ps.gameObject.SetActive(true);
+            ps.Play();
         }
 
         // ── Effect Implementations ───────────────────────────────────────────

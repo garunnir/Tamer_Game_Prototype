@@ -40,11 +40,22 @@ namespace WildTamer
         [SerializeField] private float _patrolRadius = 5f;
         [SerializeField] private float _idleDuration = 2f;
 
+        [Header("Faction Indicator")]
+        [SerializeField] private float _indicatorRadius   = 0.6f;
+        [SerializeField] private int   _indicatorSegments = 32;
+        [SerializeField] private float _indicatorYOffset  = 0.05f;
+        [SerializeField] private float _indicatorWidth    = 0.2f;
+
+        [Header("Taming")]
+        [SerializeField] [Range(0f, 1f)] private float _tamingHealFraction = 0.3f;
+
         [Header("Squash & Stretch")]
-        [SerializeField] private float _stretchFactor  = 0.20f;
-        [SerializeField] private float _squashFactor   = 0.30f;
-        [SerializeField] private float _squashDuration = 0.15f;
-        [SerializeField] private float _scaleSmoothing = 12f;
+        [SerializeField] private float _stretchFactor        = 0.20f;
+        [SerializeField] private float _squashFactor         = 0.30f;
+        [SerializeField] private float _squashDuration       = 0.15f;
+        [SerializeField] private float _scaleSmoothing       = 12f;
+        [SerializeField] private float _attackStretchFactor  = 0.35f;
+        [SerializeField] private float _attackStretchDuration = 0.12f;
 
         // ── ICombatant / ITargetable / ITeamable ─────────────────────────────
 
@@ -65,7 +76,6 @@ namespace WildTamer
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
 
-        private const float TamingHealFraction   = 0.3f;
         private const float ReleaseDespawnDelay  = 5f;
         private const float TamingAnimDuration   = 0.9f;
         private const float TamingBlinkInterval  = 0.1f;
@@ -87,8 +97,10 @@ namespace WildTamer
         private float         _currentSpeed;
         private float         _prevSpeed;
         private float         _squashTimer;
+        private float         _attackStretchTimer;
         private bool          _isTaming;
         private Renderer      _renderer;
+        private LineRenderer  _factionIndicator;
 
         // ── Unity Lifecycle ──────────────────────────────────────────────────
 
@@ -120,6 +132,8 @@ namespace WildTamer
 
             _movementLogic?.Initialize(this);
             _attackLogic?.Initialize(this);
+
+            InitFactionIndicator();
         }
 
         private void Start()
@@ -283,6 +297,7 @@ namespace WildTamer
         {
             _state = MonsterState.Attack;
             _attackLogic?.OnEnterAttackState(this);
+            _attackStretchTimer = _attackStretchDuration;
         }
 
         private void EnterFollow()
@@ -308,6 +323,7 @@ namespace WildTamer
             if (!IsAlive || _isTaming) return;
 
             _currentHP -= amount;
+            UpdateFactionIndicatorArc();
             EffectManager.Instance?.TriggerHitEffect(this, transform.position);
             SoundManager.Instance?.PlayHit();
             if (_currentHP <= 0f)
@@ -326,7 +342,8 @@ namespace WildTamer
             if (Random.value < chance)
             {
                 _currentTarget = null;
-                _currentHP     = (_data != null ? _data.MaxHP : 1f) * TamingHealFraction;
+                _currentHP     = (_data != null ? _data.MaxHP : 1f) * _tamingHealFraction;
+                UpdateFactionIndicatorArc();
                 Tame();
             }
             else
@@ -373,6 +390,8 @@ namespace WildTamer
 
             if (newFaction == FactionId.Player)
                 BecomeFlockUnit();
+
+            UpdateFactionIndicatorColor();
         }
 
         /// <summary>
@@ -460,6 +479,7 @@ namespace WildTamer
             if (target == null || !target.IsAlive) return;
             SoundManager.Instance?.PlayAttack();
             ProjectilePool.Instance?.Get(transform.position, _data.AttackDamage, target);
+            _squashTimer = _squashDuration;
         }
 
         /// <summary>Deals direct melee damage to target and triggers hitstop on self.</summary>
@@ -469,6 +489,7 @@ namespace WildTamer
             SoundManager.Instance?.PlayAttack();
             target.TakeDamage(damage);
             EffectManager.Instance?.TriggerHitstop(this);
+            _squashTimer = _squashDuration;
         }
 
         /// <summary>Delegates an AoE explosion to CombatSystem.</summary>
@@ -487,8 +508,75 @@ namespace WildTamer
         }
 
         /// <summary>Directly sets HP (used by SaveManager on load, before faction assignment).</summary>
-        public void SetHP(float value) =>
+        public void SetHP(float value)
+        {
             _currentHP = Mathf.Clamp(value, 1f, _data != null ? _data.MaxHP : value);
+            UpdateFactionIndicatorArc();
+        }
+
+        // ── Faction Indicator ────────────────────────────────────────────────
+
+        private void InitFactionIndicator()
+        {
+            var go = new GameObject("FactionIndicator");
+            go.transform.SetParent(transform);
+            go.transform.localPosition = new Vector3(0f, _indicatorYOffset, 0f);
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale    = Vector3.one;
+
+            _factionIndicator = go.AddComponent<LineRenderer>();
+            _factionIndicator.useWorldSpace     = false;
+            _factionIndicator.widthMultiplier   = _indicatorWidth;
+            _factionIndicator.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _factionIndicator.receiveShadows    = false;
+
+            // URP Particles Unlit 쉐이더로 순수 색상 표시; 없으면 기본 Sprites/Default 사용
+            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                      ?? Shader.Find("Sprites/Default");
+            if (shader != null)
+                _factionIndicator.material = new Material(shader);
+
+            UpdateFactionIndicatorArc();
+            UpdateFactionIndicatorColor();
+        }
+
+        private void UpdateFactionIndicatorArc()
+        {
+            if (_factionIndicator == null) return;
+
+            float maxHP  = _data != null ? _data.MaxHP : 1f;
+            float ratio  = Mathf.Clamp01(_currentHP / Mathf.Max(maxHP, 0.001f));
+            bool  isFull = ratio >= 1f;
+
+            int   segments = isFull
+                ? _indicatorSegments
+                : Mathf.Max(2, Mathf.RoundToInt(ratio * _indicatorSegments));
+            float arcAngle = ratio * Mathf.PI * 2f;
+
+            _factionIndicator.loop          = isFull;
+            _factionIndicator.positionCount = segments;
+
+            for (int i = 0; i < segments; i++)
+            {
+                // isFull: 마지막 점이 첫 점과 겹치지 않게 segments로 나눔 (loop가 닫아줌)
+                // 부분 호: 시작~끝을 segments-1로 나눠 끝점 포함
+                float t     = isFull ? i / (float)segments : i / (float)(segments - 1);
+                float angle = Mathf.PI * 0.5f - t * arcAngle; // +Z(위쪽)에서 시계방향
+                _factionIndicator.SetPosition(i, new Vector3(
+                    Mathf.Cos(angle) * _indicatorRadius,
+                    0f,
+                    Mathf.Sin(angle) * _indicatorRadius
+                ));
+            }
+        }
+
+        private void UpdateFactionIndicatorColor()
+        {
+            if (_factionIndicator == null) return;
+            Color c = _factionId == FactionId.Player ? Color.green : Color.red;
+            _factionIndicator.startColor = c;
+            _factionIndicator.endColor   = c;
+        }
 
         // ── Squash & Stretch ─────────────────────────────────────────────────
 
@@ -506,6 +594,7 @@ namespace WildTamer
             Vector3 targetScale;
             if (_squashTimer > 0f)
             {
+                // ① impact squash (공격 발동 / 착지)
                 _squashTimer -= Time.deltaTime;
                 float squashY  = 1f - _squashFactor;
                 float squashXZ = 1f + _squashFactor * 0.5f;
@@ -515,8 +604,21 @@ namespace WildTamer
                     _baseScale.z * squashXZ
                 );
             }
+            else if (_attackStretchTimer > 0f)
+            {
+                // ② anticipation stretch (공격 시작 와인드업)
+                _attackStretchTimer -= Time.deltaTime;
+                float stretchY  = 1f + _attackStretchFactor;
+                float stretchXZ = 1f - _attackStretchFactor * 0.4f;
+                targetScale = new Vector3(
+                    _baseScale.x * stretchXZ,
+                    _baseScale.y * stretchY,
+                    _baseScale.z * stretchXZ
+                );
+            }
             else
             {
+                // ③ 이동 속도 기반 stretch
                 float stretchY  = 1f + _stretchFactor * speedT;
                 float stretchXZ = 1f - _stretchFactor * 0.5f * speedT;
                 targetScale = new Vector3(

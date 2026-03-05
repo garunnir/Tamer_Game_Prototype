@@ -25,6 +25,10 @@ namespace WildTamer
         [Tooltip("Immediately return to Chase (with retreat) after each shot.")]
         [SerializeField] private bool _retreatAfterFiring = false;
 
+        [Header("VFX")]
+        [Tooltip("Muzzle flash effect played at the owner's position on each shot.")]
+        [SerializeField] private ParticleSystem _muzzleVfxPrefab;
+
         // ── Runtime ──────────────────────────────────────────────────────────
 
         private float _attackTimer;
@@ -44,6 +48,7 @@ namespace WildTamer
                 return AttackTickResult.Continue;
 
             owner.FireProjectileAt(target);
+            EffectManager.Instance?.PlayVfxAt(_muzzleVfxPrefab, owner.transform.position);
             _attackTimer = owner.Data.AttackCooldown;
 
             if (_retreatAfterFiring)

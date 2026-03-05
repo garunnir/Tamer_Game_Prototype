@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: AoeExplosionAttack
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.AoeExplosionAttackLogic
   _explosionRadius: 3
+  _warningDuration: 1
+  _explosionVfxPrefab: {fileID: 2433282508523890284, guid: 3ef3ae421f71c5c4e97fe12dc2fc6312, type: 3}

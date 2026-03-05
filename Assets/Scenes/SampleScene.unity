@@ -3322,7 +3322,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2644757564886291604, guid: 4d85cb63a2524654eb09cd4762bb3ded, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -67.6
+      value: -80.8
       objectReference: {fileID: 0}
     - target: {fileID: 2644757564886291604, guid: 4d85cb63a2524654eb09cd4762bb3ded, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4004,8 +4004,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.EffectManager
   _camera: {fileID: 330585548}
-  _hitlagDuration: 0.08
-  _hitstopDuration: 0.05
+  _hitlagDuration: 0.1
+  _hitstopDuration: 0.1
   _shakeMagnitude: 0.15
   _shakeDuration: 0.1
   _flashColor: {r: 1, g: 0, b: 0, a: 1}

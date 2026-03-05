@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: MonsterData_NormalA
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterData
   _monsterName: Normal A
-  _maxHP: 80
+  _maxHP: 300
   _attackDamage: 10
-  _moveSpeed: 3.5
-  _attackRange: 1.5
+  _moveSpeed: 5
+  _attackRange: 4
   _detectionRange: 8
   _tamingChance: 0.3
   _attackCooldown: 1.5

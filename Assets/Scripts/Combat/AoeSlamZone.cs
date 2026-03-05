@@ -3,66 +3,57 @@ using UnityEngine;
 namespace WildTamer
 {
     /// <summary>
-    /// Pooled ground-slam warning zone. Spawned by BossA.
+    /// Pooled ground-slam warning zone. Spawned by MeleeAndSlamAttackLogic.
     ///
     /// Lifecycle (managed entirely by this component):
-    ///   1. BossA calls Init() → zone activates, flat red cylinder appears at position.
-    ///   2. Update counts down _warningDuration seconds.
-    ///   3. Detonate() fires CombatSystem.DealAoeDamage on the Ally team.
-    ///   4. GameObject is deactivated — BossA's pool picks it up next time.
+    ///   1. Init() → zone activates, a pulsing ring appears at the position.
+    ///   2. Update counts down _warningDuration seconds; ring blinks faster as time runs out.
+    ///   3. Detonate() fires CombatSystem.DealAoeDamage on the target team.
+    ///   4. GameObject is deactivated — the pool picks it up next time.
     ///
-    /// No reference back to BossA is needed; deactivation returns it to the pool
-    /// (BossA's GetAvailableZone searches for !activeInHierarchy objects).
-    ///
-    /// Visual: a flat cylinder primitive (WarningCylinderHeight thick) with an
-    /// opaque red material, scaled to diameter = radius × 2.
-    ///
+    /// Visual: LineRenderer circle ring (faction-coloured: green = ally, red = enemy).
     /// Inspector setup: none — fully configured at runtime via Init().
     /// </summary>
     public class AoeSlamZone : MonoBehaviour
     {
-        // ── Constants ────────────────────────────────────────────────────────
+        private const float GroundOffset  = 0.02f;
+        private const int   RingSegments  = 40;
+        private const float RingWidth     = 0.16f;
 
-        private const float WarningCylinderHeight = 0.02f;
-
-        /// <summary>Lifts zone just above Y=0 ground to prevent Z-fighting.</summary>
-        private const float GroundOffset = 0.02f;
-
-        // ── Private runtime ──────────────────────────────────────────────────
-
-        private Renderer _warningRenderer;
-        private float    _timer;
-        private float    _radius;
-        private float    _damage;
-        private float    _warningDuration;
-
-        // ── Unity Lifecycle ──────────────────────────────────────────────────
+        private LineRenderer _ring;
+        private float        _timer;
+        private float        _radius;
+        private float        _damage;
+        private float        _warningDuration;
+        private Color        _baseColor;
 
         private void Awake()
         {
-            // Create a flat cylinder as the warning indicator.
-            // Cylinder is a child so it moves with this transform.
-            GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            cylinder.transform.SetParent(transform, false);
-            cylinder.transform.localPosition = Vector3.zero;
-            cylinder.transform.localRotation = Quaternion.identity;
+            _ring                   = gameObject.AddComponent<LineRenderer>();
+            _ring.useWorldSpace     = false;
+            _ring.loop              = true;
+            _ring.widthMultiplier   = RingWidth;
+            _ring.positionCount     = RingSegments;
+            _ring.material          = new Material(Shader.Find("Sprites/Default"));
+            _ring.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _ring.receiveShadows    = false;
 
-            // Remove the auto-added collider — collision is handled by DealAoeDamage.
-            Destroy(cylinder.GetComponent<CapsuleCollider>());
-
-            // Set up a simple opaque red material (Built-in RP Standard shader).
-            _warningRenderer = cylinder.GetComponent<Renderer>();
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = Color.red;
-            _warningRenderer.material = mat;
-
-            // Start inactive; BossA activates via Init().
             gameObject.SetActive(false);
         }
 
         private void Update()
         {
             _timer -= Time.deltaTime;
+
+            // Blink faster as the explosion approaches.
+            float t          = Mathf.Clamp01(_timer / _warningDuration);
+            float blinkSpeed = Mathf.Lerp(10f, 2f, t);
+            float alpha      = Mathf.Lerp(0.3f, 1f, Mathf.Abs(Mathf.Sin(Time.time * blinkSpeed)));
+            var   c          = _baseColor;
+            c.a              = alpha;
+            _ring.startColor = c;
+            _ring.endColor   = c;
+
             if (_timer <= 0f)
                 Detonate();
         }
@@ -70,13 +61,14 @@ namespace WildTamer
         // ── Public API ───────────────────────────────────────────────────────
 
         /// <summary>
-        /// Configures and activates this zone. Called by BossA.SpawnSlamZone().
+        /// Configures and activates this zone.
         /// </summary>
-        /// <param name="position">World position (player's feet at spawn time).</param>
+        /// <param name="position">World position of the zone centre.</param>
         /// <param name="radius">Explosion radius in world units.</param>
-        /// <param name="damage">Damage dealt to every Ally within radius on detonation.</param>
-        /// <param name="warningDuration">Seconds the red circle is visible before exploding.</param>
-        public void Init(Vector3 position, float radius, float damage, float warningDuration)
+        /// <param name="damage">Damage dealt on detonation.</param>
+        /// <param name="warningDuration">Seconds the ring is visible before exploding.</param>
+        /// <param name="ringColor">Faction colour — green for ally, red for enemy.</param>
+        public void Init(Vector3 position, float radius, float damage, float warningDuration, Color ringColor)
         {
             transform.position = new Vector3(position.x, position.y + GroundOffset, position.z);
 
@@ -84,22 +76,23 @@ namespace WildTamer
             _damage          = damage;
             _warningDuration = warningDuration;
             _timer           = warningDuration;
+            _baseColor       = ringColor;
 
-            // Scale the flat cylinder: diameter = radius × 2, height = constant thin value.
-            float diameter = radius * 2f;
-            _warningRenderer.transform.localScale =
-                new Vector3(diameter, WarningCylinderHeight, diameter);
-
+            BuildRingPoints(radius);
             gameObject.SetActive(true);
         }
 
         // ── Private Helpers ──────────────────────────────────────────────────
 
-        /// <summary>
-        /// Deals AoE damage to all living Ally combatants within <see cref="_radius"/>
-        /// centred on this zone's position, then returns this zone to the pool by
-        /// deactivating it.
-        /// </summary>
+        private void BuildRingPoints(float radius)
+        {
+            for (int i = 0; i < RingSegments; i++)
+            {
+                float angle = i * Mathf.PI * 2f / RingSegments;
+                _ring.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
+            }
+        }
+
         private void Detonate()
         {
             CombatSystem.Instance?.DealAoeDamage(
@@ -108,9 +101,6 @@ namespace WildTamer
                 _damage,
                 FactionId.Player
             );
-
-            // Deactivating here returns this object to BossA's pool automatically;
-            // GetAvailableZone() searches for !activeInHierarchy entries.
             gameObject.SetActive(false);
         }
     }

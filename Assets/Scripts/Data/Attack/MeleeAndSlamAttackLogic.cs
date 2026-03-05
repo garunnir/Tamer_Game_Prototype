@@ -37,6 +37,10 @@ namespace WildTamer
         [Tooltip("Seconds the red warning circle is visible before the zone detonates.")]
         [SerializeField] private float _warningDuration = 1.5f;
 
+        [Header("VFX")]
+        [Tooltip("Effect played at each slam zone's position when the zone is activated.")]
+        [SerializeField] private ParticleSystem _slamZoneVfxPrefab;
+
         // ── Runtime ──────────────────────────────────────────────────────────
 
         private float         _meleeTimer;
@@ -68,15 +72,21 @@ namespace WildTamer
 
         public override AttackTickResult Tick(MonsterUnit owner, ICombatant target, bool inAttackRange)
         {
-            if (!inAttackRange)
+            // During a slam sequence: keep moving and let zones complete.
+            // Zones detonate at their fixed spawn positions (OverlapSphere), so targets
+            // that moved out of a zone's radius are naturally unaffected.
+            if (!inAttackRange && !_isSlamming)
                 return AttackTickResult.EnterChase;
 
-            // ── Melee timer ──────────────────────────────────────────────────
-            _meleeTimer -= Time.deltaTime;
-            if (_meleeTimer <= 0f)
+            // ── Melee timer (only when in range) ─────────────────────────────
+            if (inAttackRange)
             {
-                owner.DealMeleeDamage(target, owner.Data.AttackDamage);
-                _meleeTimer = owner.Data.AttackCooldown;
+                _meleeTimer -= Time.deltaTime;
+                if (_meleeTimer <= 0f)
+                {
+                    owner.DealMeleeDamage(target, owner.Data.AttackDamage);
+                    _meleeTimer = owner.Data.AttackCooldown;
+                }
             }
 
             // ── Slam timer ───────────────────────────────────────────────────
@@ -93,21 +103,24 @@ namespace WildTamer
             }
 
             if (_isSlamming)
-                UpdateSlamSequence(owner, target);
+            {
+                owner.MoveToward(target.Transform.position, owner.Data.MoveSpeed);
+                UpdateSlamSequence(owner, target, owner);
+            }
 
             return AttackTickResult.Continue;
         }
 
         // ── Slam Sequence ────────────────────────────────────────────────────
 
-        private void UpdateSlamSequence(MonsterUnit owner, ICombatant target)
+        private void UpdateSlamSequence(MonsterUnit owner, ICombatant target, MonsterUnit zoneOwner)
         {
             _nextZoneTimer -= Time.deltaTime;
             if (_nextZoneTimer > 0f) return;
 
             if (_slamPhase < _slamZoneCount)
             {
-                SpawnSlamZone(target);
+                SpawnSlamZone(target, zoneOwner);
                 _slamPhase++;
             }
 
@@ -121,7 +134,7 @@ namespace WildTamer
             }
         }
 
-        private void SpawnSlamZone(ICombatant target)
+        private void SpawnSlamZone(ICombatant target, MonsterUnit owner)
         {
             if (target == null || !target.IsAlive) return;
 
@@ -132,12 +145,15 @@ namespace WildTamer
                 return;
             }
 
+            Color ringColor = owner.Faction == FactionId.Player ? Color.green : Color.red;
             zone.Init(
                 target.Transform.position,
                 _slamRadius,
                 _slamDamage,
-                _warningDuration
+                _warningDuration,
+                ringColor
             );
+            EffectManager.Instance?.PlayVfxAt(_slamZoneVfxPrefab, target.Transform.position);
         }
 
         private AoeSlamZone GetAvailableZone()

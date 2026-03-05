@@ -175,10 +175,16 @@ MonoBehaviour:
   _attackLogicOverride: {fileID: 0}
   _patrolRadius: 5
   _idleDuration: 2
-  _stretchFactor: 0.2
-  _squashFactor: 0.3
+  _indicatorRadius: 0.6
+  _indicatorSegments: 32
+  _indicatorYOffset: 0.05
+  _tamingHealFraction: 1
+  _stretchFactor: 0.4
+  _squashFactor: 0.6
   _squashDuration: 0.15
   _scaleSmoothing: 12
+  _attackStretchFactor: 0.35
+  _attackStretchDuration: 0.12
 --- !u!54 &1945342453620823096
 Rigidbody:
   m_ObjectHideFlags: 0

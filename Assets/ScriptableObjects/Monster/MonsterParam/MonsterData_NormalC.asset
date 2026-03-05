@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: MonsterData_NormalC
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterData
   _monsterName: Normal C
-  _maxHP: 60
+  _maxHP: 300
   _attackDamage: 8
   _moveSpeed: 5
-  _attackRange: 1.2
-  _detectionRange: 6
+  _attackRange: 4
+  _detectionRange: 8
   _tamingChance: 0.4
   _attackCooldown: 1.5
-  _defaultMovementLogic: {fileID: 11400000, guid: ae27f6ee38b9a0e41955359c2c1cb0d9, type: 2}
+  _defaultMovementLogic: {fileID: 11400000, guid: a1746df60e4ab7843a07483f2d435b92, type: 2}
   _defaultAttackLogic: {fileID: 11400000, guid: 6ab0c648d6cc6ba4992a7c97d2218268, type: 2}

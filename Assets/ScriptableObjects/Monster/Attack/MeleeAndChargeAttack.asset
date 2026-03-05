@@ -21,3 +21,5 @@ MonoBehaviour:
   _chargeDamage: 30
   _chargeRecoveryDuration: 0.5
   _vibrateAmplitude: 0.15
+  _windupVfxPrefab: {fileID: 3696007233179127047, guid: c248f95ffea8b8543bc7ad0fffe0216d, type: 3}
+  _impactVfxPrefab: {fileID: 4271093393614929224, guid: 87ee7299dd44ed747af24dbb91bcd33b, type: 3}

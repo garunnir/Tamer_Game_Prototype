@@ -15,10 +15,10 @@ MonoBehaviour:
   _monsterName: Normal B
   _maxHP: 120
   _attackDamage: 15
-  _moveSpeed: 2.5
+  _moveSpeed: 1.5
   _attackRange: 5
   _detectionRange: 15
   _tamingChance: 1
   _attackCooldown: 1.5
-  _defaultMovementLogic: {fileID: 11400000, guid: cf1735554bfe42844a0e39617a6a17d7, type: 2}
+  _defaultMovementLogic: {fileID: 11400000, guid: f180eb4192ede5b4380e76e21a20a028, type: 2}
   _defaultAttackLogic: {fileID: 11400000, guid: 2cef03ef44a5b9d4baaddbd63be2b172, type: 2}
