@@ -54,7 +54,6 @@ namespace WildTamer
             if (_cameraTransform == null) return;
 
             ComputeMoveDirection();
-            RotateTowardsMoveDirection();
             UpdateAnimator();
         }
 
@@ -63,6 +62,8 @@ namespace WildTamer
             Vector3 velocity = _moveDirection * _moveSpeed;
             velocity.y = _rigidbody.linearVelocity.y;
             _rigidbody.linearVelocity = velocity;
+
+            RotateTowardsMoveDirection();
         }
 
         private void ComputeMoveDirection()
@@ -90,11 +91,12 @@ namespace WildTamer
             if (_moveDirection == Vector3.zero) return;
 
             Quaternion targetRotation = Quaternion.LookRotation(_moveDirection, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
+            Quaternion next = Quaternion.RotateTowards(
+                _rigidbody.rotation,
                 targetRotation,
-                _rotationSpeed * Time.deltaTime
+                _rotationSpeed * Time.fixedDeltaTime
             );
+            _rigidbody.MoveRotation(next);
         }
 
         private void UpdateAnimator()
