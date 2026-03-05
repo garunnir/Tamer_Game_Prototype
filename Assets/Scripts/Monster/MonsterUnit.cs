@@ -60,6 +60,7 @@ namespace WildTamer
         public MovementLogic ActiveMovementLogic => _movementLogic;
         public bool          IsMotionSuspended   => _suspendTimer > 0f;
         public bool          IsFollowing         => _state == MonsterState.Follow;
+        public bool          IsTaming            => _isTaming;
 
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
@@ -67,6 +68,7 @@ namespace WildTamer
         private const float TamingHealFraction   = 0.3f;
         private const float ReleaseDespawnDelay  = 5f;
         private const float TamingAnimDuration   = 0.9f;
+        private const float TamingBlinkInterval  = 0.1f;
 
         // ── Runtime state ────────────────────────────────────────────────────
 
@@ -85,6 +87,8 @@ namespace WildTamer
         private float         _currentSpeed;
         private float         _prevSpeed;
         private float         _squashTimer;
+        private bool          _isTaming;
+        private Renderer      _renderer;
 
         // ── Unity Lifecycle ──────────────────────────────────────────────────
 
@@ -93,6 +97,7 @@ namespace WildTamer
             _spawnPoint   = transform.position;
             _patrolTarget = _spawnPoint;
             _baseScale    = transform.localScale;
+            _renderer     = GetComponentInChildren<Renderer>();
 
             if (_data == null)
             {
@@ -300,7 +305,7 @@ namespace WildTamer
 
         public void TakeDamage(float amount)
         {
-            if (!IsAlive) return;
+            if (!IsAlive || _isTaming) return;
 
             _currentHP -= amount;
             EffectManager.Instance?.TriggerHitEffect(this, transform.position);
@@ -311,6 +316,12 @@ namespace WildTamer
 
         private void TryTameOrDie()
         {
+            if (_factionId == FactionId.Player)
+            {
+                EnterDead();
+                return;
+            }
+
             float chance = _data != null ? _data.TamingChance : 0f;
             if (Random.value < chance)
             {
@@ -370,6 +381,9 @@ namespace WildTamer
         /// </summary>
         public void Tame()
         {
+            if (_factionId == FactionId.Player) return;
+
+            _isTaming     = true;
             _suspendTimer = TamingAnimDuration + 0.1f;
             StartCoroutine(TamingAbsorptionCoroutine());
         }
@@ -556,9 +570,15 @@ namespace WildTamer
                 // Second half: fly toward player.
                 transform.position = Vector3.Lerp(startPos, playerPos, Mathf.Clamp01((t - 0.5f) * 2f));
 
+                // Blink: toggle renderer on/off every TamingBlinkInterval seconds.
+                if (_renderer != null)
+                    _renderer.enabled = (elapsed % (TamingBlinkInterval * 2f)) < TamingBlinkInterval;
+
                 yield return null;
             }
 
+            if (_renderer != null) _renderer.enabled = true;
+            _isTaming = false;
             transform.localScale = _baseScale;
             SetFaction(FactionId.Player);
             GlobalEvents.FireTamingSucceeded(this);
