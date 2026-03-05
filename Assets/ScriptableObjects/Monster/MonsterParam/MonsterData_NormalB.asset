@@ -17,7 +17,7 @@ MonoBehaviour:
   _attackDamage: 15
   _moveSpeed: 1.5
   _attackRange: 5
-  _detectionRange: 15
+  _detectionRange: 8
   _tamingChance: 1
   _attackCooldown: 1.5
   _defaultMovementLogic: {fileID: 11400000, guid: f180eb4192ede5b4380e76e21a20a028, type: 2}

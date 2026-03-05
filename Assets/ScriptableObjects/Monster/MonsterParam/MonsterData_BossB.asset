@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterData
   _monsterName: Boss B
   _maxHP: 400
-  _attackDamage: 35
+  _attackDamage: 10
   _moveSpeed: 4
   _attackRange: 6
   _detectionRange: 12

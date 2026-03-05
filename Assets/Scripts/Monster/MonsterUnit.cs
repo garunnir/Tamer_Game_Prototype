@@ -44,7 +44,8 @@ namespace WildTamer
         [SerializeField] private float _indicatorRadius   = 0.6f;
         [SerializeField] private int   _indicatorSegments = 32;
         [SerializeField] private float _indicatorYOffset  = 0.05f;
-        [SerializeField] private float _indicatorWidth    = 0.2f;
+        [SerializeField] private float _indicatorWidth     = 0.2f;
+        [SerializeField] private float _indicatorStartAngleDeg = 90f;
 
         [Header("Taming")]
         [SerializeField] [Range(0f, 1f)] private float _tamingHealFraction = 0.3f;
@@ -551,17 +552,16 @@ namespace WildTamer
             int   segments = isFull
                 ? _indicatorSegments
                 : Mathf.Max(2, Mathf.RoundToInt(ratio * _indicatorSegments));
-            float arcAngle = ratio * Mathf.PI * 2f;
+            float startRad = _indicatorStartAngleDeg * Mathf.Deg2Rad;
+            float arcRad   = ratio * Mathf.PI * 2f;
 
             _factionIndicator.loop          = isFull;
             _factionIndicator.positionCount = segments;
 
             for (int i = 0; i < segments; i++)
             {
-                // isFull: 마지막 점이 첫 점과 겹치지 않게 segments로 나눔 (loop가 닫아줌)
-                // 부분 호: 시작~끝을 segments-1로 나눠 끝점 포함
                 float t     = isFull ? i / (float)segments : i / (float)(segments - 1);
-                float angle = Mathf.PI * 0.5f - t * arcAngle; // +Z(위쪽)에서 시계방향
+                float angle = startRad - t * arcRad; // 시계방향
                 _factionIndicator.SetPosition(i, new Vector3(
                     Mathf.Cos(angle) * _indicatorRadius,
                     0f,

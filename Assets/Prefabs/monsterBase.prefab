@@ -178,6 +178,8 @@ MonoBehaviour:
   _indicatorRadius: 0.6
   _indicatorSegments: 32
   _indicatorYOffset: 0.05
+  _indicatorWidth: 0.2
+  _indicatorStartAngleDeg: 180
   _tamingHealFraction: 1
   _stretchFactor: 0.4
   _squashFactor: 0.6

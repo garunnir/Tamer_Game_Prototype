@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 954ef490b4816444cb26827d8b2de50f, type: 3}
   m_Name: ProjectileAttack
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.ProjectileAttackLogic
-  _ignoreRangeCheck: 0
+  _ignoreRangeCheck: 1
   _retreatAfterFiring: 1
   _muzzleVfxPrefab: {fileID: 0}
