@@ -688,7 +688,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.QuarterViewCamera
   _player: {fileID: 538741499}
-  _offset: {x: 0, y: 12, z: -10}
+  _distance: 15.6
   _smoothSpeed: 5
   _pitchAngle: 60
   _yawAngle: 45
@@ -2996,6 +2996,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MinimapController
   _mapData: {fileID: 11400000, guid: 70329065586fc97478322948ea63f528, type: 2}
   _renderTextureSize: 256
+  _isometricRotationOffset: -45
+  _rotatingMap: 0
 --- !u!1 &2005055710
 GameObject:
   m_ObjectHideFlags: 0

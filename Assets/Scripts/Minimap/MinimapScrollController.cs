@@ -13,10 +13,9 @@ namespace WildTamer
     /// The material is cloned in Awake() so that MinimapFogUIBinder.Start()
     /// (which sets _FogMaskTex) operates on the per-instance copy.
     ///
-    /// _PlayerPos encoding: global-map UV — same formula as WorldToMinimapUV
-    /// global path:  u = (worldPos.x - worldCenter.x) / worldSize.x + 0.5
-    ///               v = (worldPos.z - worldCenter.y) / worldSize.y + 0.5
-    /// This matches the shader's clamped-window math exactly.
+    /// _PlayerPos encoding: global-map UV computed via MinimapController.WorldToGlobalUV.
+    /// This is always the fixed-isometric UV (no player yaw), so the FoW mask stays
+    /// aligned with the stable FoW RenderTexture regardless of player rotation.
     /// </summary>
     [RequireComponent(typeof(RawImage))]
     public class MinimapScrollController : MonoBehaviour
@@ -91,17 +90,12 @@ namespace WildTamer
             _material.SetFloat (PropViewRadius,  _mapData.ViewRadius);
             _material.SetFloat (PropIsLocalView, _mapData.UseLocalView ? 1f : 0f);
 
-            if (_playerTransform != null)
+            if (_playerTransform != null && MinimapController.Instance != null)
             {
-                // Normalise player world position to [0,1] global-map UV space.
-                // Mirrors WorldToMinimapUV global path in MinimapController.
-                Vector2 wc  = _mapData.WorldCenter;
-                Vector3 pos = _playerTransform.position;
-
-                float u = Mathf.Clamp01((pos.x - wc.x) / worldSize.x + 0.5f);
-                float v = Mathf.Clamp01((pos.z - wc.y) / worldSize.y + 0.5f);
-
-                _material.SetVector(PropPlayerPos, new Vector4(u, v, 0f, 0f));
+                // Use WorldToGlobalUV (fixed isometric offset, no player yaw) so the
+                // FoW mask UV matches the stable FoW RT coordinate space exactly.
+                Vector2 playerUV = MinimapController.Instance.WorldToGlobalUV(_playerTransform.position);
+                _material.SetVector(PropPlayerPos, new Vector4(playerUV.x, playerUV.y, 0f, 0f));
             }
         }
     }

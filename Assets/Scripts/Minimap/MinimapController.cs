@@ -17,6 +17,17 @@ namespace WildTamer
         [SerializeField] private MapData _mapData;
         [SerializeField] private int     _renderTextureSize = 256;
 
+        [Header("Isometric Alignment")]
+        [Tooltip("Rotation applied to all UV coordinates to align the camera's forward direction "
+               + "with minimap-up. Matches the camera's Y rotation offset (negative sign applied "
+               + "internally). Flip sign here if icon movement direction is inverted.")]
+        [SerializeField] private float _isometricRotationOffset = 45f;
+
+        [Tooltip("When true, the minimap rotates with the player so their facing direction is "
+               + "always minimap-up. Only affects icon placement (WorldToMinimapUV); the FoW RT "
+               + "always uses a fixed coordinate space (WorldToGlobalUV) for persistence.")]
+        [SerializeField] private bool _rotatingMap = false;
+
         // ── Public ───────────────────────────────────────────────────────────
 
         public RenderTexture MinimapRT { get; private set; }
@@ -28,6 +39,11 @@ namespace WildTamer
         // _viewWindowSize : width / height of the window in world-XZ space.
         private Vector2 _viewWindowMin;
         private Vector2 _viewWindowSize;
+
+        // Player yaw in degrees. Updated each tick via SetPlayerYaw().
+        // Only applied in WorldToMinimapUV (Rotating mode). WorldToGlobalUV ignores it
+        // so the FoW RT remains in a stable, player-rotation-independent UV space.
+        private float _playerYaw;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
 
@@ -60,6 +76,19 @@ namespace WildTamer
                 MinimapRT.Release();
                 Destroy(MinimapRT);
             }
+        }
+
+        // ── Player yaw (Rotating mode) ───────────────────────────────────────
+
+        /// <summary>
+        /// Updates the player's world-space Y rotation used by <see cref="WorldToMinimapUV"/>
+        /// in Rotating mode. Has no effect in Fixed mode or when used by
+        /// <see cref="WorldToGlobalUV"/> (FoW coordinate space is always fixed).
+        /// Call once per update tick from <see cref="MinimapUnitTracker"/>.
+        /// </summary>
+        public void SetPlayerYaw(float yawDegrees)
+        {
+            _playerYaw = _rotatingMap ? yawDegrees : 0f;
         }
 
         // ── Coordinate conversion ────────────────────────────────────────────
@@ -119,38 +148,92 @@ namespace WildTamer
         }
 
         /// <summary>
-        /// Converts a world position (XZ plane) to a minimap UV in [0, 1] × [0, 1].
+        /// Converts a world position (XZ plane) to a minimap UV in [0, 1] × [0, 1],
+        /// applying the isometric coordinate transform (rotation + V-compression).
         ///
-        /// Global mode: delegates to <see cref="WorldToGlobalUV"/> (full world, unchanged).
+        /// Global mode: delegates to the isometric global UV path.
         /// Local mode:  maps against the clamped View Window computed in
-        ///              <see cref="SetViewCenter"/>. UV 0/1 = window edges (never empty space).
+        ///              <see cref="SetViewCenter"/>. In Rotating mode, also applies the
+        ///              current player yaw so the player always faces minimap-up.
         /// </summary>
         public Vector2 WorldToMinimapUV(Vector3 worldPos)
         {
             if (_mapData.UseLocalView)
             {
-                float u = Mathf.Clamp01((worldPos.x - _viewWindowMin.x) / _viewWindowSize.x);
-                float v = Mathf.Clamp01((worldPos.z - _viewWindowMin.y) / _viewWindowSize.y);
-                return new Vector2(u, v);
+                // Use the clamped window center as the reference origin.
+                Vector2 windowCenter = _viewWindowMin + _viewWindowSize * 0.5f;
+
+                // Normalize offset to [-0.5, 0.5] relative to the window size.
+                float nx = (worldPos.x - windowCenter.x) / _viewWindowSize.x;
+                float nz = (worldPos.z - windowCenter.y) / _viewWindowSize.y;
+
+                Vector2 iso = ApplyIsometricTransform(nx, nz, _playerYaw);
+                return new Vector2(Mathf.Clamp01(iso.x + 0.5f), Mathf.Clamp01(iso.y + 0.5f));
             }
 
-            return WorldToGlobalUV(worldPos);
+            // Global view also includes player yaw in Rotating mode.
+            Vector2 center = _mapData.WorldCenter;
+            Vector2 size   = _mapData.SafeWorldSize;
+            {
+                float nx = (worldPos.x - center.x) / size.x;
+                float nz = (worldPos.z - center.y) / size.y;
+                Vector2 iso = ApplyIsometricTransform(nx, nz, _playerYaw);
+                return new Vector2(Mathf.Clamp01(iso.x + 0.5f), Mathf.Clamp01(iso.y + 0.5f));
+            }
         }
 
         /// <summary>
-        /// Always returns the full-world global UV regardless of <c>UseLocalView</c>.
-        /// Used by <see cref="FowController"/> so the FoW RT is stamped in a stable,
-        /// persistent coordinate space, and by unit visibility checks against that RT.
+        /// Returns the full-world global UV with a fixed isometric offset only —
+        /// player yaw is intentionally excluded so this coordinate space is stable
+        /// across player rotations.
+        ///
+        /// Used by <see cref="FowController"/> (FoW stamp positions must persist across
+        /// sessions and player turns) and by <see cref="MinimapUnitTracker"/> for FoW
+        /// visibility sampling.
         /// </summary>
         public Vector2 WorldToGlobalUV(Vector3 worldPos)
         {
             Vector2 center = _mapData.WorldCenter;
             Vector2 size   = _mapData.SafeWorldSize;
 
-            float u = Mathf.Clamp01((worldPos.x - center.x) / size.x + 0.5f);
-            float v = Mathf.Clamp01((worldPos.z - center.y) / size.y + 0.5f);
+            float nx = (worldPos.x - center.x) / size.x;
+            float nz = (worldPos.z - center.y) / size.y;
 
-            return new Vector2(u, v);
+            // extraYaw = 0 → FoW space is always aligned to the fixed isometric offset.
+            Vector2 iso = ApplyIsometricTransform(nx, nz, 0f);
+            return new Vector2(Mathf.Clamp01(iso.x + 0.5f), Mathf.Clamp01(iso.y + 0.5f));
+        }
+
+        /// <summary>
+        /// Applies the isometric 2D rotation and vertical compression to a normalised
+        /// world-XZ offset (both axes in the [-0.5, 0.5] range).
+        ///
+        /// Rotation angle = -(isometricRotationOffset + extraYawDeg).
+        ///   • Fixed mode:    extraYawDeg = 0  → aligns camera-forward with minimap-up.
+        ///   • Rotating mode: extraYawDeg = playerYaw → player always faces minimap-up.
+        ///
+        /// The V component is multiplied by 0.5 afterwards to simulate the isometric
+        /// floor's diamond-shaped projection (vertical foreshortening). The result is
+        /// centered around (0, 0); add 0.5 to convert to [0, 1] UV space.
+        ///
+        /// Note on sign: a negative angle rotates the coordinate frame clockwise, which
+        /// visually rotates the rendered map counter-clockwise. If icon movement appears
+        /// mirrored, negate <c>_isometricRotationOffset</c> in the Inspector.
+        /// </summary>
+        private Vector2 ApplyIsometricTransform(float nx, float nz, float extraYawDeg)
+        {
+            float rad = -(_isometricRotationOffset + extraYawDeg) * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+
+            float rotU = nx * cos - nz * sin;
+            float rotV = nx * sin + nz * cos;
+
+            // Isometric vertical compression: the floor appears foreshortened in the
+            // Y direction when viewed at an isometric angle.
+            rotV *= 0.5f;
+
+            return new Vector2(rotU, rotV);
         }
 
         /// <summary>

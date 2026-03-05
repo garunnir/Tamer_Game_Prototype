@@ -161,9 +161,12 @@ namespace WildTamer
         {
             if (_minimapRect == null || MinimapController.Instance == null) return;
 
-            // Keep Local-view center in sync with the player every tick.
+            // Keep Local-view center and isometric rotation in sync with the player every tick.
             if (_playerTransform != null)
+            {
                 MinimapController.Instance.SetViewCenter(_playerTransform.position);
+                MinimapController.Instance.SetPlayerYaw(_playerTransform.eulerAngles.y);
+            }
 
             // ── Player icon — always blue, always in the center of Local view ──
             if (_playerIcon != null && _playerTransform != null)
