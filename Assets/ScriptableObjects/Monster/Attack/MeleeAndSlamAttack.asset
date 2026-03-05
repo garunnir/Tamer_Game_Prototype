@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50542477dada848488cfd05d06e9ffc8, type: 3}
   m_Name: MeleeAndSlamAttack
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MeleeAndSlamAttackLogic
-  _slamInterval: 8
+  _slamInterval: 3
   _slamZoneCount: 3
   _slamDamage: 25
   _slamRadius: 3
   _zoneSpawnInterval: 0.5
   _warningDuration: 1.5
-  _slamZoneVfxPrefab: {fileID: 4021103657954561960, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
+  _slamZoneVfxPrefab: {fileID: 9027514048236820043, guid: effb650189dc5714e9e9801b1cfb3991, type: 3}

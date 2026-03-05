@@ -45,7 +45,8 @@ namespace WildTamer
         // ── Runtime state ─────────────────────────────────────────────────────
 
         private readonly List<MonsterUnit>    _units       = new List<MonsterUnit>();
-        public IReadOnlyList<MonsterUnit> Units => _units;
+        public IReadOnlyList<MonsterUnit> Units                => _units;
+        public int                        CurrentFormationIndex => _currentFormationIndex;
         private readonly List<FlockMoveLogic> _flockLogics = new List<FlockMoveLogic>();
 
         // 슬롯 월드 좌표 캐시

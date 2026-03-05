@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1796625980290434090f3b3a9028d1f3, type: 3}
   m_Name: MeleeAndChargeAttack
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MeleeAndChargeAttackLogic
-  _chargeInterval: 6
-  _chargeHpThreshold: 0.7
+  _chargeInterval: 3
+  _chargeHpThreshold: 0.8
   _chargeWindupDuration: 0.8
   _chargeSpeed: 15
   _chargeMaxDuration: 2
@@ -21,5 +21,5 @@ MonoBehaviour:
   _chargeDamage: 30
   _chargeRecoveryDuration: 0.5
   _vibrateAmplitude: 0.15
-  _windupVfxPrefab: {fileID: 3696007233179127047, guid: c248f95ffea8b8543bc7ad0fffe0216d, type: 3}
+  _windupVfxPrefab: {fileID: 4772634663558126228, guid: e1385af346f4e624eb313ec1ea4fcd7e, type: 3}
   _impactVfxPrefab: {fileID: 4271093393614929224, guid: 87ee7299dd44ed747af24dbb91bcd33b, type: 3}

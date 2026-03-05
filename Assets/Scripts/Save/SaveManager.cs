@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace WildTamer
@@ -35,7 +34,7 @@ namespace WildTamer
 
         // ── Runtime state ────────────────────────────────────────────────────
 
-        private readonly HashSet<string>             _globalUnlocks = new HashSet<string>();
+        private readonly HashSet<string>                 _globalUnlocks = new HashSet<string>();
         private          Dictionary<string, MonsterUnit> _prefabDict;
 
         private static string SavePath =>
@@ -64,6 +63,7 @@ namespace WildTamer
                         Debug.LogWarning("[SaveManager] A squad prefab entry is null or missing MonsterData — skipped.");
                 }
             }
+
         }
 
         private void OnEnable()  => GlobalEvents.OnTamingSucceeded += OnTamingSucceeded;
@@ -86,15 +86,26 @@ namespace WildTamer
             var save = new SaveData();
             save.playerPosition = FromV3(_player.transform.position);
 
-            save.squad = FlockManager.Instance.Units
-                .Where(u => u.Data != null)
-                .Select(u => new SquadMemberData
+            // All units in the scene
+            save.units = new List<UnitData>();
+            foreach (MonsterUnit mu in FindObjectsOfType<MonsterUnit>())
+            {
+                if (mu.Data == null || !mu.IsAlive) continue;
+
+                save.units.Add(new UnitData
                 {
-                    monsterId  = u.Data.name,
-                    hpFraction = Mathf.Clamp01(u.CurrentHP / u.Data.MaxHP),
-                    position   = FromV3(u.transform.position)
-                })
-                .ToList();
+                    monsterId  = mu.Data.name,
+                    hpFraction = Mathf.Clamp01(mu.CurrentHP / mu.Data.MaxHP),
+                    position   = FromV3(mu.transform.position),
+                    state      = (int)mu.CurrentState,
+                    faction    = (int)mu.Faction
+                });
+            }
+
+            // Formation
+            save.formationIndex = FlockManager.Instance != null
+                ? FlockManager.Instance.CurrentFormationIndex
+                : 0;
 
             save.globalUnlocks = new List<string>(_globalUnlocks);
 
@@ -148,29 +159,43 @@ namespace WildTamer
                     data.fog.width,
                     data.fog.height);
 
-            // Squad — clear existing
-            if (FlockManager.Instance != null)
+            // Clear all existing units
+            foreach (MonsterUnit mu in FindObjectsOfType<MonsterUnit>())
+                mu.gameObject.SetActive(false);
+
+            // Build combined prefab lookup (squad + spawn prefabs)
+            var prefabLookup = new Dictionary<string, MonsterUnit>(_prefabDict);
+            if (RespawnManager.Instance != null)
             {
-                foreach (MonsterUnit u in FlockManager.Instance.Units.ToList())
-                    u.ReleaseFromFlock();
+                foreach (MonsterUnit prefab in RespawnManager.Instance.SpawnPrefabs)
+                {
+                    if (prefab != null && prefab.Data != null)
+                        prefabLookup.TryAdd(prefab.Data.name, prefab);
+                }
             }
 
-            // Squad — spawn saved members
-            if (data.squad != null)
+            // Spawn all saved units
+            if (data.units != null)
             {
-                foreach (SquadMemberData entry in data.squad)
+                foreach (UnitData entry in data.units)
                 {
-                    if (!_prefabDict.TryGetValue(entry.monsterId, out MonsterUnit prefab))
+                    if (!prefabLookup.TryGetValue(entry.monsterId, out MonsterUnit prefab))
                     {
-                        Debug.LogWarning($"[SaveManager] No prefab registered for id '{entry.monsterId}' — skipping.");
+                        Debug.LogWarning($"[SaveManager] No prefab for id '{entry.monsterId}' — skipping.");
                         continue;
                     }
 
                     MonsterUnit unit = Instantiate(prefab, ToV3(entry.position), Quaternion.identity);
                     unit.SetHP(entry.hpFraction * prefab.Data.MaxHP);
-                    unit.SetFaction(FactionId.Player);   // triggers BecomeFlockUnit → FlockManager.AddUnit
+
+                    if ((FactionId)entry.faction == FactionId.Player)
+                        unit.SetFaction(FactionId.Player);  // BecomeFlockUnit → FlockManager.AddUnit
                 }
             }
+
+            // Formation
+            if (FlockManager.Instance != null && data.formationIndex >= 0)
+                FlockManager.Instance.SetFormationIndex(data.formationIndex);
 
             // Global unlocks
             if (data.globalUnlocks != null)
@@ -179,7 +204,6 @@ namespace WildTamer
                     _globalUnlocks.Add(id);
             }
 
-            Debug.Log($"[SaveManager] Loaded. Squad={data.squad?.Count ?? 0}, Unlocks={_globalUnlocks.Count}");
         }
 
         // ── Private helpers ──────────────────────────────────────────────────

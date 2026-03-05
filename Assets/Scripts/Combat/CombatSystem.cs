@@ -18,6 +18,8 @@ namespace WildTamer
         private readonly List<ICombatant> _allies  = new List<ICombatant>();
         private readonly List<ICombatant> _enemies = new List<ICombatant>();
 
+        public IReadOnlyList<ICombatant> Enemies => _enemies;
+
         // ── Unity Lifecycle ──────────────────────────────────────────────────
 
         private void Awake()

@@ -73,6 +73,7 @@ namespace WildTamer
         public bool          IsMotionSuspended   => _suspendTimer > 0f;
         public bool          IsFollowing         => _state == MonsterState.Follow;
         public bool          IsTaming            => _isTaming;
+        public MonsterState  CurrentState        => _state;
 
         /// <summary>Normalized heading; read by FlockMoveLogic for alignment.</summary>
         public Vector3 VelocityDirection { get; private set; }
@@ -146,7 +147,7 @@ namespace WildTamer
 
             MinimapUnitTracker.Instance?.Register(this);
 
-            EnterIdle();
+            EnterIdleOrFollow();
         }
 
         private void OnDisable()

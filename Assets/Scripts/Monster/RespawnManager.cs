@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WildTamer
@@ -16,6 +17,8 @@ namespace WildTamer
 
         [Header("Spawn Prefabs")]
         [SerializeField] private MonsterUnit[] _spawnPrefabs;
+
+        public IReadOnlyList<MonsterUnit> SpawnPrefabs => _spawnPrefabs;
 
         [Header("Settings")]
         [SerializeField] private float _spawnInterval   = 10f;

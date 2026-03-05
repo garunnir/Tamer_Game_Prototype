@@ -14,20 +14,23 @@ namespace WildTamer
     }
 
     [Serializable]
-    public class SquadMemberData
+    public class UnitData
     {
-        public string monsterId;       // MonsterData SO asset name, e.g. "MonsterData_NormalA"
-        public float  hpFraction;      // currentHP / data.MaxHP, clamped [0,1]
+        public string monsterId;   // MonsterData SO asset name, e.g. "MonsterData_NormalA"
+        public float  hpFraction;  // currentHP / data.MaxHP, clamped [0,1]
         public Vec3S  position;
+        public int    state;       // MonsterState enum value
+        public int    faction;     // FactionId enum value
     }
 
     [Serializable]
     public class SaveData
     {
-        public Vec3S                 playerPosition;
-        public FogData               fog;
-        public List<SquadMemberData> squad;
-        public List<string>          globalUnlocks;   // SO names tamed >= once
-        public string                version = "1";
+        public Vec3S          playerPosition;
+        public FogData        fog;
+        public List<UnitData> units;
+        public List<string>   globalUnlocks;   // SO names tamed >= once
+        public int            formationIndex;
+        public string         version = "2";
     }
 }

@@ -167,9 +167,10 @@ namespace WildTamer
             Renderer rend = victim.Transform.GetComponentInChildren<Renderer>();
             if (rend == null) yield break;
 
-            // Cache existing overrides so we can restore them after the flash.
-            var originalBlock = new MaterialPropertyBlock();
-            rend.GetPropertyBlock(originalBlock);
+            // Read original colors from sharedMaterial — never modified by PropertyBlock,
+            // so this is always correct even when multiple flashes overlap.
+            Color origBase     = rend.sharedMaterial.GetColor("_BaseColor");
+            Color origEmission = rend.sharedMaterial.GetColor("_EmissionColor");
 
             var flashBlock = new MaterialPropertyBlock();
             flashBlock.SetColor("_BaseColor",     _flashColor);
@@ -180,7 +181,12 @@ namespace WildTamer
 
             // Renderer may be null if the GO was destroyed while the coroutine ran.
             if (rend != null)
-                rend.SetPropertyBlock(originalBlock);
+            {
+                var restoreBlock = new MaterialPropertyBlock();
+                restoreBlock.SetColor("_BaseColor",     origBase);
+                restoreBlock.SetColor("_EmissionColor", origEmission);
+                rend.SetPropertyBlock(restoreBlock);
+            }
         }
 
         private void PlaySpark(Vector3 position)

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4772634663558126228}
   - component: {fileID: 4772634663558095668}
   - component: {fileID: 4772634663576830967}
+  - component: {fileID: 4532019226954396963}
   m_Layer: 0
   m_Name: CFXR3 Shield Leaves A (Lit)
   m_TagString: Untagged
@@ -4797,7 +4798,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 6cd2d08f4a4d93542aa0004bdac91566, type: 2}
-  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4899,6 +4899,19 @@ MonoBehaviour:
     shakesDelay: 0
   animatedLights: []
   fadeOutReference: {fileID: 0}
+--- !u!114 &4532019226954396963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4772634663576830964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df11b5378d3e7de4b961d846ae155673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.TimedDeactivate
+  Delay: 3
 --- !u!1 &8018385630816773088
 GameObject:
   m_ObjectHideFlags: 0
@@ -9685,7 +9698,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 80eaf5e9f1028e04b87ba508cb40858f, type: 2}
-  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
