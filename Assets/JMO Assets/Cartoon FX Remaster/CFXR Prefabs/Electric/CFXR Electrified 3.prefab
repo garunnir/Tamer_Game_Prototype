@@ -9807,7 +9807,7 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 0.7311321, g: 0.9361015, b: 1, a: 1}
-  m_Intensity: 8.132261
+  m_Intensity: 0
   m_Range: 8
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -9902,6 +9902,7 @@ GameObject:
   - component: {fileID: 9027514048236820043}
   - component: {fileID: 9027514048236820044}
   - component: {fileID: 6747932735989160330}
+  - component: {fileID: 3084775407033648619}
   m_Layer: 0
   m_Name: CFXR Electrified 3
   m_TagString: Untagged
@@ -14918,3 +14919,16 @@ MonoBehaviour:
     perlinColor: 0
     perlinColorSpeed: 1
   fadeOutReference: {fileID: 9027514048236820043}
+--- !u!114 &3084775407033648619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9027514048236820045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df11b5378d3e7de4b961d846ae155673, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.TimedDeactivate
+  Delay: 3

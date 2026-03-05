@@ -62,13 +62,11 @@ namespace WildTamer
 
         public override AttackTickResult Tick(MonsterUnit owner, ICombatant target, bool inAttackRange)
         {
-            // During the warning phase: keep moving toward the target and let the attack complete.
-            // Damage is position-based (OverlapSphere at the fixed ring), so targets that moved
-            // outside the explosion radius are naturally unaffected.
+            // During the warning phase: stand in place and let the ring animation complete.
+            // The explosion fires at the locked ring position; targets that moved outside
+            // the radius are naturally unaffected.
             if (_isWarning)
             {
-                owner.MoveToward(target.Transform.position, owner.Data.MoveSpeed);
-
                 _warnTimer -= Time.deltaTime;
                 AnimateRing(owner, _warnTimer / _warningDuration);
 
