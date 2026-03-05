@@ -36,7 +36,7 @@ namespace WildTamer
                     target.Transform.position,
                     _explosionRadius,
                     owner.Data.AttackDamage,
-                    CombatTeam.Ally
+                    FactionId.Player
                 );
                 _attackTimer = owner.Data.AttackCooldown;
             }

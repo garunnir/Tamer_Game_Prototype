@@ -47,7 +47,7 @@ namespace WildTamer
         {
             if (combatant == null) return;
 
-            if (combatant.Team == CombatTeam.Ally)
+            if (combatant.Faction == FactionId.Player)
                 _allies.Add(combatant);
             else
                 _enemies.Add(combatant);
@@ -61,7 +61,7 @@ namespace WildTamer
         {
             if (combatant == null) return;
 
-            if (combatant.Team == CombatTeam.Ally)
+            if (combatant.Faction == FactionId.Player)
                 _allies.Remove(combatant);
             else
                 _enemies.Remove(combatant);
@@ -75,11 +75,11 @@ namespace WildTamer
         /// Iterates a snapshot of the registry so that TakeDamage-induced deaths
         /// (OnDisable → UnregisterCombatant → List.Remove) do not corrupt the loop.
         /// </summary>
-        public void DealAoeDamage(Vector3 center, float radius, float damage, CombatTeam targetTeam)
+        public void DealAoeDamage(Vector3 center, float radius, float damage, FactionId targetFaction)
         {
             float sqrRadius = radius * radius;
 
-            List<ICombatant> registry = targetTeam == CombatTeam.Ally ? _allies : _enemies;
+            List<ICombatant> registry = targetFaction == FactionId.Player ? _allies : _enemies;
 
             // Snapshot: deaths during TakeDamage mutate the registry; iterating
             // the original list mid-removal throws InvalidOperationException.

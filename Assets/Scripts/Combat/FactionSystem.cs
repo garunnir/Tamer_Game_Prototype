@@ -19,9 +19,5 @@ namespace WildTamer
             return (a == FactionId.Enemy  && b == FactionId.Player)
                 || (a == FactionId.Player && b == FactionId.Enemy);
         }
-
-        /// <summary>Converts a FactionId to the binary CombatTeam used by CombatSystem.</summary>
-        public static CombatTeam ToCombatTeam(FactionId id)
-            => id == FactionId.Player ? CombatTeam.Ally : CombatTeam.Enemy;
     }
 }

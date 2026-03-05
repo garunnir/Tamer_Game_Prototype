@@ -1,8 +1,8 @@
 namespace WildTamer
 {
-    public interface ITeamable
+    /// <summary>Contract for objects that have a faction and can have it changed (e.g. taming).</summary>
+    public interface ITeamable : IHasFaction
     {
-        FactionId Faction { get; }
         void SetFaction(FactionId team);
     }
 }

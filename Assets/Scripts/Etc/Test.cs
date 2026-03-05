@@ -5,9 +5,18 @@ using UnityEngine.UI;
 public class Test : MonoBehaviour
 {
     [SerializeField] private QuarterViewCamera _quarterViewCamera;
+    [SerializeField] private SaveManager _saveManager;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void CameraShake()
     {
         _quarterViewCamera.CameraShake(1f, 0.1f);
     }
+    public void Save()
+    {
+        _saveManager.Save();
+    }
+    public void Load()
+    {
+        _saveManager.Load();
+    }   
 }

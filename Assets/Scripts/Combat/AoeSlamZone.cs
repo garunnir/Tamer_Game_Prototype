@@ -106,7 +106,7 @@ namespace WildTamer
                 transform.position,
                 _radius,
                 _damage,
-                CombatTeam.Ally
+                FactionId.Player
             );
 
             // Deactivating here returns this object to BossA's pool automatically;

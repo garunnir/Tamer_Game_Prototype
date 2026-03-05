@@ -48,7 +48,6 @@ namespace WildTamer
 
         // ── ICombatant / ITargetable / ITeamable ─────────────────────────────
 
-        public CombatTeam Team           => FactionSystem.ToCombatTeam(_factionId);
         public Transform  Transform      => transform;
         public bool       IsAlive        => _currentHP > 0f;
         public float      DetectionRange => _data != null ? _data.DetectionRange : 0f;
@@ -305,6 +304,7 @@ namespace WildTamer
 
             _currentHP -= amount;
             EffectManager.Instance?.TriggerHitEffect(this, transform.position);
+            SoundManager.Instance?.PlayHit();
             if (_currentHP <= 0f)
                 TryTameOrDie();
         }
@@ -439,6 +439,7 @@ namespace WildTamer
         public void FireProjectileAt(ICombatant target)
         {
             if (target == null || !target.IsAlive) return;
+            SoundManager.Instance?.PlayAttack();
             ProjectilePool.Instance?.Get(transform.position, _data.AttackDamage, target);
         }
 
@@ -446,14 +447,15 @@ namespace WildTamer
         public void DealMeleeDamage(ICombatant target, float damage)
         {
             if (target == null || !target.IsAlive) return;
+            SoundManager.Instance?.PlayAttack();
             target.TakeDamage(damage);
             EffectManager.Instance?.TriggerHitstop(this);
         }
 
         /// <summary>Delegates an AoE explosion to CombatSystem.</summary>
-        public void DetonateAoe(Vector3 center, float radius, float damage, CombatTeam targetTeam)
+        public void DetonateAoe(Vector3 center, float radius, float damage, FactionId targetFaction)
         {
-            CombatSystem.Instance?.DealAoeDamage(center, radius, damage, targetTeam);
+            CombatSystem.Instance?.DealAoeDamage(center, radius, damage, targetFaction);
         }
 
         /// <summary>

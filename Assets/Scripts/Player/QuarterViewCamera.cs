@@ -12,7 +12,7 @@ namespace WildTamer
         [SerializeField] private Transform _player;
 
         [Header("Follow Settings")]
-        [SerializeField] private Vector3 _offset = new Vector3(0f, 12f, -10f);
+        [SerializeField] private float _distance = 15.6f;
         [SerializeField] private float _smoothSpeed = 5f;
 
         [Header("Rotation")]
@@ -26,8 +26,7 @@ namespace WildTamer
 
         private void Start()
         {
-            transform.rotation = Quaternion.Euler(_pitchAngle, _yawAngle, 0f);
-
+            ApplyRotation();
             _basePosition = transform.position;
 
             if (_player == null)
@@ -36,7 +35,7 @@ namespace WildTamer
                 return;
             }
 
-            _basePosition = _player.position + _offset;
+            _basePosition = GetTargetPosition();
             transform.position = _basePosition;
         }
 
@@ -44,9 +43,23 @@ namespace WildTamer
         {
             if (_player == null) return;
 
-            Vector3 target = _player.position + _offset;
+            Vector3 target = GetTargetPosition();
             _basePosition = Vector3.Lerp(_basePosition, target, _smoothSpeed * Time.deltaTime);
             transform.position = _basePosition + CalculateShakeOffset();
+        }
+
+        private void ApplyRotation()
+        {
+            transform.rotation = Quaternion.Euler(_pitchAngle, _yawAngle, 0f);
+        }
+
+        /// <summary>
+        /// 플레이어가 화면 정중앙에 오도록, 시선 방향 뒤쪽으로 _distance만큼 떨어진 위치를 반환.
+        /// </summary>
+        private Vector3 GetTargetPosition()
+        {
+            Vector3 lookForward = transform.forward;
+            return _player.position - lookForward * _distance;
         }
 
         /// <summary>

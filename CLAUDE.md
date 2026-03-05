@@ -24,17 +24,21 @@
 ## Folder Structure
 ```
 Assets/Scripts/
-├── Player/
-├── Monster/       ← MonsterUnit.cs only
-├── Combat/        ← CombatSystem, FactionSystem, ICombatant, AoeSlamZone, Projectile(Pool)
-├── Data/
-│   ├── MovementLogic.cs, AttackLogic.cs  (abstract SO bases)
-│   ├── MonsterData.cs
-│   ├── Movement/  ← MovementLogic implementations
-│   └── Attack/    ← AttackLogic implementations
-├── Flock/         ← FlockManager, FormationHelper
-└── Effects/
+├── Player/        Player input and camera
+├── Monster/       Monster units and respawn systems
+├── Combat/        Combat systems, factions, projectiles, and pooling
+├── Data/          ScriptableObject-based data
+│   ├── Movement/  Movement logic SO implementations
+│   └── Attack/    Attack logic SO implementations
+├── Flock/         Flocking and formations
+├── Effects/       VFX and SFX
+├── Minimap/       Minimap and Fog of War (FOW)
+├── Save/          Save/Load systems
+├── UI/
+└── Etc/           Miscellaneous and testing
 ```
+
+Folder Structure Suggestion: Since the Etc folder can easily become ambiguous and cluttered, it is better for maintenance to place test or debug scripts in a dedicated Dev/ or Editor/ folder. For other miscellaneous items, try to categorize them into the domain-specific folders listed above whenever possible. Common utilities, such as global events or shared tools, can be grouped together in a Core/ folder or placed at the root level for better accessibility.
 
 ## Coding Conventions
 - Namespace: `WildTamer`
