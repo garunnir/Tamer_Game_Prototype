@@ -331,6 +331,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MinimapScrollController
   _playerTransform: {fileID: 538741499}
   _mapData: {fileID: 11400000, guid: 70329065586fc97478322948ea63f528, type: 2}
+--- !u!114 &219034360 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
+  m_PrefabInstance: {fileID: 1636772934}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8d72d92a2521b04987b9364df341bf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterUnit
 --- !u!1001 &286663005
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2043,8 +2054,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1295201359}
+  m_Children: []
   m_Father: {fileID: 1940057188}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &888606384
@@ -2063,14 +2073,21 @@ MonoBehaviour:
   _maxUnits: 20
   _detectionRadius: 5
   _flockMoveTemplate: {fileID: 11400000, guid: d1a38a7c1ed343643ad1acaeafe2b552, type: 2}
-  _formationHelper: {fileID: 1295201358}
+  _formations:
+  - {fileID: 11400000, guid: 9c8c8a0e1328e734f9da575505760ac6, type: 2}
+  - {fileID: 11400000, guid: b81f27d78db754048b60d840fc156660, type: 2}
+  - {fileID: 11400000, guid: 4b4a4948477e04f4b8bc28ade360f1bf, type: 2}
+  - {fileID: 11400000, guid: ee2c1d4093c78324f9d5b82161b70be5, type: 2}
+  - {fileID: 11400000, guid: 69ea120662ca33c4b8d12c64c6737966, type: 2}
+  _defaultFormationIndex: 0
+  _spacing: 1.5
   _pivotOffset: {x: 0, y: 0, z: 0}
   _formationRotationOffset: -45
   _initialUnits:
   - {fileID: 371459116}
   - {fileID: 1910221144}
   - {fileID: 1908463693}
-  - {fileID: 2131736938}
+  - {fileID: 219034360}
 --- !u!1 &916444916
 GameObject:
   m_ObjectHideFlags: 0
@@ -2891,52 +2908,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1277039914}
   m_CullTransparentMesh: 1
---- !u!1 &1295201357
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1295201359}
-  - component: {fileID: 1295201358}
-  m_Layer: 0
-  m_Name: FlockHelper
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1295201358
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1295201357}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77ede56156e9c0646adecaa258d1166c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.FormationHelper
-  _formationType: 4
-  _spacing: 4
---- !u!4 &1295201359
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1295201357}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.34878, y: -0.77568, z: -1.65794}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 888606383}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1298546086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3817,17 +3788,6 @@ Transform:
   - {fileID: 36180485}
   m_Father: {fileID: 538741499}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2131736938 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1279702329784714791, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
-  m_PrefabInstance: {fileID: 315118080}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8d72d92a2521b04987b9364df341bf3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WildTamer.MonsterUnit
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

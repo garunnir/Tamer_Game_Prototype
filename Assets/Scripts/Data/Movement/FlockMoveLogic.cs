@@ -18,7 +18,9 @@ namespace WildTamer
         [SerializeField] private float _targetWeight     = 3.0f;
 
         [Header("Separation")]
-        [SerializeField] private float _separationRadius = 1.5f;
+        [SerializeField] private float _separationRadius       = 1.5f;
+        [SerializeField] private float _playerSeparationRadius = 2.0f;
+        [SerializeField] private float _playerSeparationWeight = 2.0f;
 
         [Header("Movement")]
         [SerializeField] private float _maxSpeed        = 7f;
@@ -64,12 +66,14 @@ namespace WildTamer
             // (슬롯에 가까울수록 0으로 감쇠, 멀수록 1에 수렴)
             float jitterDampen = Mathf.Clamp01(distToSlot / _slowingDistance);
 
-            Vector3 separation = CalculateSeparation(nearbyUnits) * _separationWeight * jitterDampen;
-            Vector3 targetSeek = CalculateTargetSeek(targetPosition);
+            Vector3 separation       = CalculateSeparation(nearbyUnits) * _separationWeight * jitterDampen;
+            Vector3 playerSeparation = CalculatePlayerSeparation() * _playerSeparationWeight;
+            Vector3 targetSeek       = CalculateTargetSeek(targetPosition);
 
-            // FormationHelper가 정의한 슬롯(targetPosition)을 강하게 따르되,
+            // FlockManager가 정의한 슬롯(targetPosition)을 강하게 따르되,
             // 유닛 간 과도한 겹침만 separation으로 완화한다.
-            Vector3 desired    = separation + targetSeek * _targetWeight;
+            // 플레이어 분리 힘은 jitterDampen 없이 항상 적용한다.
+            Vector3 desired    = separation + playerSeparation + targetSeek * _targetWeight;
             float   desiredMag = desired.magnitude;
 
             if (desiredMag > 0.001f)
@@ -115,6 +119,19 @@ namespace WildTamer
             }
 
             return force.magnitude > 0f ? force.normalized : Vector3.zero;
+        }
+
+        private Vector3 CalculatePlayerSeparation()
+        {
+            if (_playerTransform == null) return Vector3.zero;
+
+            Vector3 diff     = _ownerTransform.position - _playerTransform.position;
+            float   distance = diff.magnitude;
+
+            if (distance >= _playerSeparationRadius || distance < 0.0001f)
+                return Vector3.zero;
+
+            return diff.normalized / distance;
         }
 
         private Vector3 CalculateTargetSeek(Vector3 targetPosition)

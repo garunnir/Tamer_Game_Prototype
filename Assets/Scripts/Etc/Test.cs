@@ -23,15 +23,6 @@ public class Test : MonoBehaviour
     }   
     public void ChangeFormation()
     {
-        i = (i + 1) % 5;
-        if (i == 0)            _flockManager.SetFormationType(FormationType.Circle);
-        else if (i == 1)
-            _flockManager.SetFormationType(FormationType.Square);
-        else if (i == 2)
-            _flockManager.SetFormationType(FormationType.Column);
-        else if (i == 3)
-            _flockManager.SetFormationType(FormationType.Wedge);
-        else if (i == 4)
-        _flockManager.SetFormationType(FormationType.Line);
+        _flockManager.NextFormation();
     }
 }
