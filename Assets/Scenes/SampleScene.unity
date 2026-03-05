@@ -393,7 +393,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5501044189752032845, guid: b4c188a609213ec4bba9d65cf9d5fd98, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1925,6 +1925,7 @@ MonoBehaviour:
   _detectionRadius: 5
   _flockMoveTemplate: {fileID: 11400000, guid: d1a38a7c1ed343643ad1acaeafe2b552, type: 2}
   _formationHelper: {fileID: 1295201358}
+  _pivotOffset: {x: 0, y: 0, z: 0}
   _initialUnits:
   - {fileID: 371459116}
   - {fileID: 1910221144}
@@ -2490,7 +2491,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77ede56156e9c0646adecaa258d1166c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WildTamer.FormationHelper
-  _radius: 3
+  _formationType: 0
+  _spacing: 1.5
 --- !u!4 &1295201359
 Transform:
   m_ObjectHideFlags: 0

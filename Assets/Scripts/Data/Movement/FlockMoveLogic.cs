@@ -4,7 +4,7 @@ using UnityEngine;
 namespace WildTamer
 {
     /// <summary>
-    /// Boids flocking movement: Separation + Alignment + Cohesion + Target-seek.
+    /// Boids flocking movement: Separation + Target-seek with arrival slowing.
     /// Driven externally by FlockManager via TickWithNeighbors() each frame.
     /// The standard Tick() is a no-op (returns Continue) because FlockManager
     /// owns the update loop for flock units.
@@ -15,25 +15,31 @@ namespace WildTamer
     {
         [Header("Flocking Weights")]
         [SerializeField] private float _separationWeight = 1.0f;
-        [SerializeField] private float _alignmentWeight  = 1.0f;
-        [SerializeField] private float _cohesionWeight   = 1.0f;
         [SerializeField] private float _targetWeight     = 3.0f;
 
         [Header("Separation")]
         [SerializeField] private float _separationRadius = 1.5f;
 
         [Header("Movement")]
-        [SerializeField] private float _maxSpeed      = 7f;
-        [SerializeField] private float _rotationSpeed = 360f;
-        [SerializeField] private float _acceleration  = 8f;
+        [SerializeField] private float _maxSpeed        = 7f;
+        [SerializeField] private float _rotationSpeed   = 360f;
+        [SerializeField] private float _acceleration    = 8f;
+        [SerializeField] private float _slowingDistance = 2f;
 
-        // ── Runtime (safe after Instantiate per unit) ────────────────────────
+        // ── Runtime (캐시: Initialize에서 설정) ──────────────────────────────
 
-        private Vector3 _currentVelocity;
+        private Vector3   _currentVelocity;
+        private Rigidbody _rb;
+        private Transform _ownerTransform;
+        private Transform _playerTransform;
 
         public override void Initialize(MonsterUnit owner)
         {
             _currentVelocity = Vector3.zero;
+            _rb              = owner.GetComponent<Rigidbody>();   // null 허용
+            _ownerTransform  = owner.transform;
+            // PlayerController를 찾아 플레이어 방향 회전에 사용 (null 허용)
+            _playerTransform = Object.FindObjectOfType<PlayerController>()?.transform;
         }
 
         /// <summary>No-op: movement is driven by FlockManager via TickWithNeighbors.</summary>
@@ -51,16 +57,26 @@ namespace WildTamer
         {
             if (owner.IsMotionSuspended) return;
 
-            Vector3 separation = CalculateSeparation(owner, nearbyUnits);
-            Vector3 targetSeek = CalculateTargetSeek(owner, targetPosition);
+            // 슬롯까지의 거리 계산
+            float distToSlot = Vector3.Distance(_ownerTransform.position, targetPosition);
+
+            // 슬롯 근처에서 separation 힘을 선형적으로 줄여 지터 방지
+            // (슬롯에 가까울수록 0으로 감쇠, 멀수록 1에 수렴)
+            float jitterDampen = Mathf.Clamp01(distToSlot / _slowingDistance);
+
+            Vector3 separation = CalculateSeparation(nearbyUnits) * _separationWeight * jitterDampen;
+            Vector3 targetSeek = CalculateTargetSeek(targetPosition);
 
             // FormationHelper가 정의한 슬롯(targetPosition)을 강하게 따르되,
             // 유닛 간 과도한 겹침만 separation으로 완화한다.
-            Vector3 desired = separation * _separationWeight
-                            + targetSeek * _targetWeight;
+            Vector3 desired    = separation + targetSeek * _targetWeight;
+            float   desiredMag = desired.magnitude;
 
-            if (desired.magnitude > _maxSpeed)
-                desired = desired.normalized * _maxSpeed;
+            if (desiredMag > 0.001f)
+            {
+                // 슬롯 가까워질수록 속도 감소 (오버슈팅 방지)
+                desired = (desired / desiredMag) * (_maxSpeed * jitterDampen);
+            }
 
             _currentVelocity = Vector3.MoveTowards(
                 _currentVelocity,
@@ -68,21 +84,32 @@ namespace WildTamer
                 _acceleration * Time.deltaTime
             );
 
-            if (_currentVelocity.magnitude > 0.001f)
+            // 현재 속도 크기 캐싱 (Rigidbody 적용 및 회전 판단에 재사용)
+            float currentSpeed = _currentVelocity.magnitude;
+
+            // Rigidbody가 있으면 물리 기반 이동, 없으면 직접 이동으로 fallback
+            if (_rb != null)
+                _rb.linearVelocity = _currentVelocity;
+            else if (currentSpeed > 0.001f)
                 owner.ApplyDirectVelocity(_currentVelocity);
+
+            // 이동 방향 또는 플레이어 방향으로 회전
+            ApplyAdaptiveRotation(owner, currentSpeed);
         }
 
         // ── Force Calculations ───────────────────────────────────────────────
 
-        private Vector3 CalculateSeparation(MonsterUnit owner, List<MonsterUnit> nearbyUnits)
+        private Vector3 CalculateSeparation(List<MonsterUnit> nearbyUnits)
         {
             Vector3 force = Vector3.zero;
 
             foreach (MonsterUnit neighbor in nearbyUnits)
             {
-                Vector3 diff     = owner.transform.position - neighbor.transform.position;
+                // 이웃 유닛과의 거리 벡터 계산
+                Vector3 diff     = _ownerTransform.position - neighbor.transform.position;
                 float   distance = diff.magnitude;
 
+                // 분리 반경 내에 있으면 거리에 반비례하는 반발력 적용
                 if (distance < _separationRadius && distance > 0.0001f)
                     force += diff.normalized / distance;
             }
@@ -90,42 +117,33 @@ namespace WildTamer
             return force.magnitude > 0f ? force.normalized : Vector3.zero;
         }
 
-        private static Vector3 CalculateAlignment(List<MonsterUnit> nearbyUnits)
+        private Vector3 CalculateTargetSeek(Vector3 targetPosition)
         {
-            if (nearbyUnits.Count == 0) return Vector3.zero;
-
-            Vector3 sumDirection = Vector3.zero;
-
-            foreach (MonsterUnit neighbor in nearbyUnits)
-                sumDirection += neighbor.VelocityDirection;
-
-            return sumDirection.magnitude > 0f ? sumDirection.normalized : Vector3.zero;
-        }
-
-        private static Vector3 CalculateCohesion(MonsterUnit owner, List<MonsterUnit> nearbyUnits)
-        {
-            if (nearbyUnits.Count == 0) return Vector3.zero;
-
-            Vector3 sumPosition = Vector3.zero;
-
-            foreach (MonsterUnit neighbor in nearbyUnits)
-                sumPosition += neighbor.transform.position;
-
-            Vector3 averagePosition = sumPosition / nearbyUnits.Count;
-            Vector3 toCenter        = averagePosition - owner.transform.position;
-
-            return toCenter.magnitude > 0f ? toCenter.normalized : Vector3.zero;
-        }
-
-        private Vector3 CalculateTargetSeek(MonsterUnit owner, Vector3 targetPosition)
-        {
-            Vector3 toTarget = targetPosition - owner.transform.position;
+            Vector3 toTarget = targetPosition - _ownerTransform.position;
             float   distance = toTarget.magnitude;
             if (distance < 0.001f) return Vector3.zero;
 
-            // Ramps 0→1 as distance goes 0→_maxSpeed, then caps at 1.5.
-            float strength = Mathf.Clamp(distance / _maxSpeed, 0f, 1.5f);
-            return toTarget.normalized * strength;
+            // 슬롯 방향으로 정규화된 벡터 반환 (크기는 TickWithNeighbors에서 스케일)
+            return toTarget.normalized;
+        }
+
+        // ── Rotation ─────────────────────────────────────────────────────────
+
+        private void ApplyAdaptiveRotation(MonsterUnit owner, float currentSpeed)
+        {
+            // 이동 중이면 이동 방향으로, 정지 시 플레이어 방향으로 부드럽게 회전
+            if (currentSpeed > 0.1f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(_currentVelocity, Vector3.up);
+                owner.transform.rotation = Quaternion.RotateTowards(
+                    owner.transform.rotation, targetRot, _rotationSpeed * Time.deltaTime);
+            }
+            else if (_playerTransform != null)
+            {
+                // 정지 상태에서는 플레이어와 같은 방향으로 Slerp 보간
+                owner.transform.rotation = Quaternion.Slerp(
+                    owner.transform.rotation, _playerTransform.rotation, 5f * Time.deltaTime);
+            }
         }
     }
 }
