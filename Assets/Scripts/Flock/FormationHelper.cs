@@ -82,6 +82,12 @@ namespace WildTamer
         /// <summary>현재 할당된 슬롯 수.</summary>
         public int SlotCount => _offsets.Length;
 
+        /// <summary>런타임에 포메이션 타입을 변경한다. 다음 Recalculate() 호출 시 자동 재계산.</summary>
+        public void SetFormationType(FormationType type) => _formationType = type;
+
+        /// <summary>런타임에 슬롯 간격을 변경한다. 다음 Recalculate() 호출 시 자동 재계산.</summary>
+        public void SetSpacing(float spacing) => _spacing = spacing;
+
         // ─── Formation Math ───────────────────────────────────────────────────
 
         /// <summary>

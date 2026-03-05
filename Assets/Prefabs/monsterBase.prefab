@@ -44,7 +44,6 @@ GameObject:
   - component: {fileID: 9139961553229534993}
   - component: {fileID: 6261212826859012318}
   - component: {fileID: 5426239652504696721}
-  - component: {fileID: 2153206794951475897}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -124,27 +123,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &2153206794951475897
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3832970481787987456}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5501044189752032845
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,9 +172,12 @@ MonoBehaviour:
   _factionId: 0
   _movementLogicOverride: {fileID: 0}
   _attackLogicOverride: {fileID: 0}
-  _flockMovementLogic: {fileID: 0}
   _patrolRadius: 5
   _idleDuration: 2
+  _stretchFactor: 0.2
+  _squashFactor: 0.3
+  _squashDuration: 0.15
+  _scaleSmoothing: 12
 --- !u!1 &8842484044102847854
 GameObject:
   m_ObjectHideFlags: 0
@@ -224,8 +205,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8842484044102847854}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.35354, y: 0.24748, z: 0.35354}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

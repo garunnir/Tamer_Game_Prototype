@@ -428,11 +428,16 @@ namespace WildTamer
             transform.position += velocity * Time.deltaTime;
             VelocityDirection   = velocity.normalized;
 
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                Quaternion.LookRotation(velocity.normalized, Vector3.up),
-                360f * Time.deltaTime
-            );
+            // Y 성분 제거 후 LookRotation: XZ 평면 회전만 적용
+            Vector3 flatDir = new Vector3(velocity.x, 0f, velocity.z);
+            if (flatDir.sqrMagnitude > 0.0001f)
+            {
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    Quaternion.LookRotation(flatDir.normalized, Vector3.up),
+                    360f * Time.deltaTime
+                );
+            }
         }
 
         /// <summary>Fires a pooled projectile at the target.</summary>

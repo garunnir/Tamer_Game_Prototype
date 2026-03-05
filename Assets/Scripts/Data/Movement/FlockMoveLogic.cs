@@ -134,15 +134,19 @@ namespace WildTamer
             // 이동 중이면 이동 방향으로, 정지 시 플레이어 방향으로 부드럽게 회전
             if (currentSpeed > 0.1f)
             {
-                Quaternion targetRot = Quaternion.LookRotation(_currentVelocity, Vector3.up);
+                // Y 성분 제거: XZ 평면 방향으로만 LookRotation 계산
+                Vector3 flatVel = new Vector3(_currentVelocity.x, 0f, _currentVelocity.z);
+                if (flatVel.sqrMagnitude < 0.0001f) return;
+                Quaternion targetRot = Quaternion.LookRotation(flatVel, Vector3.up);
                 owner.transform.rotation = Quaternion.RotateTowards(
                     owner.transform.rotation, targetRot, _rotationSpeed * Time.deltaTime);
             }
             else if (_playerTransform != null)
             {
-                // 정지 상태에서는 플레이어와 같은 방향으로 Slerp 보간
+                // Y축(Yaw)만 추출하여 피치/롤이 전이되지 않도록 함
+                Quaternion yawOnly = Quaternion.Euler(0f, _playerTransform.eulerAngles.y, 0f);
                 owner.transform.rotation = Quaternion.Slerp(
-                    owner.transform.rotation, _playerTransform.rotation, 5f * Time.deltaTime);
+                    owner.transform.rotation, yawOnly, 5f * Time.deltaTime);
             }
         }
     }

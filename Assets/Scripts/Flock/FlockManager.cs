@@ -30,7 +30,8 @@ namespace WildTamer
 
         [Header("Formation")]
         [SerializeField] private FormationHelper _formationHelper;
-        [SerializeField] private Vector3         _pivotOffset = Vector3.zero;
+        [SerializeField] private Vector3         _pivotOffset              = Vector3.zero;
+        [SerializeField] private float           _formationRotationOffset  = 0f;
 
         [Header("Initial Units")]
         [SerializeField] private List<MonsterUnit> _initialUnits = new List<MonsterUnit>();
@@ -57,8 +58,8 @@ namespace WildTamer
         private Vector3 Anchor => _playerTransform.position
                                 + (_playerTransform.rotation * _pivotOffset);
 
-        // Y축 회전만 추출 — 포메이션 슬롯을 XZ 평면에서만 회전시켜 지형 관통 방지
-        private Quaternion PlayerYaw => Quaternion.Euler(0f, _playerTransform.eulerAngles.y, 0f);
+        // Y축 회전만 추출 + 포메이션 회전 오프셋 합산
+        private Quaternion PlayerYaw => Quaternion.Euler(0f, _playerTransform.eulerAngles.y + _formationRotationOffset, 0f);
 
         // ── Unity lifecycle ──────────────────────────────────────────────────
 
@@ -158,6 +159,30 @@ namespace WildTamer
             _flockLogics.RemoveAt(index);
             _formationHelper?.Recalculate(_units.Count);
             _dirty = true; // 유닛 사망으로 인해 슬롯 재할당 필요
+        }
+
+        /// <summary>런타임에 포메이션 타입을 변경한다.</summary>
+        public void SetFormationType(FormationType type)
+        {
+            if (_formationHelper == null) return;
+            _formationHelper.SetFormationType(type);
+            _formationHelper.Recalculate(_units.Count);
+            _dirty = true;
+        }
+
+        /// <summary>런타임에 슬롯 간격을 변경한다.</summary>
+        public void SetFormationSpacing(float spacing)
+        {
+            if (_formationHelper == null) return;
+            _formationHelper.SetSpacing(spacing);
+            _formationHelper.Recalculate(_units.Count);
+            _dirty = true;
+        }
+
+        /// <summary>런타임에 포메이션 회전 오프셋을 변경한다 (도 단위, 플레이어 yaw에 합산).</summary>
+        public void SetFormationRotationOffset(float degrees)
+        {
+            _formationRotationOffset = degrees;
         }
 
         // ── Private helpers ──────────────────────────────────────────────────
